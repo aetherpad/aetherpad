@@ -52,9 +52,6 @@ var serverhandlers = { tasks: {} };
    //----------------------------------------------------------------
    // Utility Functions
    //----------------------------------------------------------------   
-   function appjetContext() {
-     return net.appjet.oui.ExecutionContextUtils.currentContext();
-   }
    function internalError(m) {
      throw new Error("AppJet Internal Error: "+m);
    }
@@ -118,8 +115,8 @@ var serverhandlers = { tasks: {} };
        debug("loadModule: "+moduleName);
 
        var modulePrivateScope = 
-         Packages.net.appjet.ajstdlib.ajstdlib.runModuleInNewScope(
-            appjetContext(), moduleName.split('.').join('/'));
+         Packages.appjet.rhinosupport.runModuleInNewScope(
+           moduleName.split('.').join('/'));
 
        if (!modulePrivateScope) {
          // moduleName is not a module.  This is normal, because when someone calls

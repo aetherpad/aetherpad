@@ -282,21 +282,26 @@ function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
   function getCache() {
     // this function is normally fast, only slow when cache
     // needs to be created for the first time
-    var cache = appjet.cache[cacheName];
+    var cache = appjet.requestCache[cacheName];
     if (cache) {
       return cache;
     }
     else {
       // initialize in a synchronized block (double-checked locking);
       // uses same lock as cache_utils.syncedWithCache would use.
-      sync.doWithStringLock("cache/"+cacheName, function() {
-        if (! appjet.cache[cacheName]) {
+      // sync.doWithStringLock("cache/"+cacheName, function() {
+        if (! appjet.requestCache[cacheName]) {
           // values expire after 10 minutes
-          appjet.cache[cacheName] =
-            new net.appjet.common.util.ExpiringMapping(10*60*1000);
+          appjet.requestCache[cacheName] = {
+            _base: {},
+            get: function(key) { return this._base[key]; },
+            put: function(key, value) { this._base[key] = value; },
+            touch: function() { },
+            remove: function(key) { delete this._base[key]; }
+          };
         }
-      });
-      return appjet.cache[cacheName];
+      // });
+      return appjet.requestCache[cacheName];
     }
   }
 

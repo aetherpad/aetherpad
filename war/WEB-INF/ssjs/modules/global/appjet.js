@@ -32,7 +32,7 @@ var appjet = {
  * @type object
  */
 get context() {
-  return net.appjet.oui.ExecutionContextUtils.currentContext();
+  return Packages.appjet.ExecutionContextUtils.currentContext();
 },
 
 get executionId() {
@@ -51,22 +51,22 @@ get executionId() {
  * Volatile cache that persists between requests.  (JavaScript object).
  */
 get cache() {
-  return Packages.net.appjet.ajstdlib.ajstdlib.attributes()
+  return Packages.appjet.rhinosupport.attributes()
     .getOrElseUpdate("cache", scalaF0({}));
 },
 
 get cacheRoot() {
   return function(name) {
-    return Packages.net.appjet.ajstdlib.ajstdlib.attributes()
+    return Packages.appjet.rhinosupport.attributes()
       .getOrElseUpdate("cache-"+(name?name:""), scalaF0({}));
   };
 },
 
 /**
- * A global lock for this app (ReentrantLock object).
+ * Cache that persists as long as this scope exists.
  */
-get globalLock() {
-  return net.appjet.ajstdlib.ajstdlib.globalLock(); 
+get scopeCache() {
+  return this.context.scope().attributes().getOrElseUpdate("scopeCache", scalaF0({}));
 },
 
 /**
@@ -77,31 +77,10 @@ get requestCache() {
 },
 
 /**
- * Per-scope cache, persisted in this "server" instance.
- */
-get scopeCache() {
-  return this.context.runner().attributes().getOrElseUpdate("scopeCache", scalaF0({}));
-},
-
-/**
  * config params for app.
  */
 get config() {
   return Packages.net.appjet.oui.config.configObject(this.context.runner().globalScope());
 },
-
-/**
- * tells appjet not to re-use this "scope"/"server"
- */
-get retireScope() {
-  return function() { this.context.runner().reuseOk_$eq(false); }
-},
-  
-/**
- * How many milliseconds the server has been running for.
- */
-get uptime() {
-  return Date.now() - Packages.net.appjet.oui.main.startTime().getTime();
-}
   
 }; // end: var appjet = {...

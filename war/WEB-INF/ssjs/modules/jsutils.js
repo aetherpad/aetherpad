@@ -191,5 +191,7 @@ function f_limitArgs(thisPtr, f, n) {
   }
 }
 
-
+/**
+ * Proxy objects are back, baby!
+ */
 

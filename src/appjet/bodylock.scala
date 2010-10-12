@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package net.appjet.bodylock;
-
-import net.appjet.common.rhino.rhinospect;
+package appjet;
 
 import scala.collection.mutable.{SynchronizedMap, ArrayBuffer, HashMap};
 
@@ -43,7 +41,7 @@ class JSRuntimeException(val message: String, val cause: Throwable) extends Exec
       ab += new JSStackFrame {
         val errorLine = elt.getLineNumber;
         val name = elt.getFileName;
-        val code = BodyLock.map.getOrElse(Map[String, String]()).getOrElse(elt.getFileName, "").split("\n"); // 0-indexed.
+        val code = (if (BodyLock.map.isDefined) BodyLock.map.get.getOrElse(elt.getFileName, "") else "").split("\n"); // 0-indexed.
         def errorContext(rad: Int) = {
           val start_i = Math.max(errorLine-rad, 1)-1;
           val end_i = Math.min(errorLine+rad, code.length)-1;
@@ -61,16 +59,16 @@ class JSCompileException(message: String, cause: org.mozilla.javascript.Evaluato
     List(new JSStackFrame {
       val errorLine = cause.lineNumber();
       val name = cause.sourceName();
-      val code = BodyLock.map.getOrElse(Map[String, String]()).getOrElse(cause.sourceName(), "").split("\n"); // 0-indexed.
+      val code = (if (BodyLock.map.isDefined) BodyLock.map.get.getOrElse(cause.sourceName(), "") else "").split("\n"); // 0-indexed.
       def errorContext(rad: Int) = {
         val start_i = Math.max(errorLine-rad, 1)-1;
         val end_i = Math.min(errorLine+rad, code.length)-1;
         (start_i+1, end_i+1, code.slice(start_i, end_i+1));
       }
-    }).concat(List(super.frames: _*));
+    }) ++ List(super.frames: _*);
 }
 
-private[bodylock] class InnerExecutable(val code: String, val script: Script) extends Executable {
+private class InnerExecutable(val code: String, val script: Script) extends Executable {
   def execute(scope: Scriptable) = try {
     BodyLock.runInContext { cx =>
       script.exec(cx, scope);
@@ -80,7 +78,6 @@ private[bodylock] class InnerExecutable(val code: String, val script: Script) ex
       val orig = BodyLock.unwrapExceptionIfNecessary(e);
       orig match {
         case e: JSRuntimeException => throw e;
-        case e: org.mortbay.jetty.RetryRequest => throw e;
         case _ => throw new JSRuntimeException("Error while executing: "+orig.getMessage, orig);
       }
     }
@@ -129,7 +126,7 @@ object BodyLock {
     cx.evaluateString(scope, source, sourceName, lineno, null);
   }
   def compileString(source: String, sourceName: String, lineno: Int
-                    /*, securityDomain: AnyRef = null */) = runInContext { cx =>
+                    /*, securityDomain: AnyRef = null */): Executable = runInContext { cx =>
     map.foreach(_(sourceName) = source);
     try {
       new InnerExecutable(source, compileToScript(source, sourceName, lineno));
@@ -147,7 +144,7 @@ object BodyLock {
     compilationutils.compileToScript(source, sourceName, lineNumber, className);
   }
 
-  def executableFromBytes(bytes: Array[byte], className: String) =
+  def executableFromBytes(bytes: Array[Byte], className: String): Executable =
     new InnerExecutable("(source not available)", compilationutils.bytesToScript(bytes, className));
   
   def unwrapExceptionIfNecessary(e: Throwable): Throwable = {
@@ -167,7 +164,7 @@ object BodyLock {
   }
 }
 
-private[bodylock] object compilationutils {
+private object compilationutils {
   class Loader(parent: ClassLoader) extends ClassLoader(parent) {
     def this() = this(getClass.getClassLoader);
     def defineClass(className: String, bytes: Array[Byte]): Class[_] = {
@@ -201,91 +198,95 @@ private[bodylock] object compilationutils {
   }
 }
 
+// ---------------------------------------------------------------------------
+// The stuff below here might be useful if you ever want to make an ant task 
+// to precompile all the js to bytecodes before uploading to appengine.
 
-import java.io.File;
-import scala.collection.mutable.HashMap;
-import net.appjet.common.util.BetterFile;
-import net.appjet.common.cli._;
 
-object Compiler {
-  val optionsList = Array(
-    ("destination", true, "Destination for class files", "path"),
-    ("cutPrefix", true, "Drop this prefix from files", "path"),
-    ("verbose", false, "Print debug information", "")
-  );
-  val chosenOptions = new HashMap[String, String];
-  val options = 
-    for (opt <- optionsList) yield 
-      new CliOption(opt._1, opt._3, if (opt._2) Some(opt._4) else None)
-
-//     var o = new Options;
-//     for (m <- optionsList) {
-//       o.addOption({
-//         if (m._2) {
-//           withArgName(m._4);
-//           hasArg();
-//         }
-//         withDescription(m._3);
-// //          withLongOpt(m.getName());
-//         create(m._1);
-//       });
-//     }
-//     o;
+// import java.io.File;
+// import scala.collection.mutable.HashMap;
+// import net.appjet.common.util.BetterFile;
+// import net.appjet.common.cli._;
+// 
+// object Compiler {
+//   val optionsList = Array(
+//     ("destination", true, "Destination for class files", "path"),
+//     ("cutPrefix", true, "Drop this prefix from files", "path"),
+//     ("verbose", false, "Print debug information", "")
+//   );
+//   val chosenOptions = new HashMap[String, String];
+//   val options = 
+//     for (opt <- optionsList) yield 
+//       new CliOption(opt._1, opt._3, if (opt._2) Some(opt._4) else None)
+// 
+// //     var o = new Options;
+// //     for (m <- optionsList) {
+// //       o.addOption({
+// //         if (m._2) {
+// //           withArgName(m._4);
+// //           hasArg();
+// //         }
+// //         withDescription(m._3);
+// // //          withLongOpt(m.getName());
+// //         create(m._1);
+// //       });
+// //     }
+// //     o;
+// //   }
+// 
+//   var verbose = true;
+//   def vprintln(s: String) {
+//     if (verbose) println(s);
 //   }
-
-  var verbose = true;
-  def vprintln(s: String) {
-    if (verbose) println(s);
-  }
-
-  def printUsage() {
-    println((new CliParser(options)).usage);
-  }
-  def extractOptions(args0: Array[String]) = {
-    val parser = new CliParser(options);
-    val (opts, args) = 
-      try {
-        parser.parseOptions(args0);
-      } catch {
-        case e: ParseException => {
-          println("error: "+e.getMessage());
-          printUsage();
-          System.exit(1);
-          null;
-        }
-      }
-    for ((k, v) <- opts) {
-      chosenOptions(k) = v;
-    }
-    args
-  }
-  def compileSingleFile(src: File, dst: File) {
-    val source = BetterFile.getFileContents(src);
-    vprintln("to: "+dst.getPath());
-    val classBytes = compilationutils.compileToBytes(source, src.getName(), 1, dst.getName().split("\\.")(0));
-
-    val fos = new java.io.FileOutputStream(dst);
-    fos.write(classBytes);
-  }
-
-  def main(args0: Array[String]) {
-    // should contain paths, relative to PWD, of javascript files to compile.
-    val args = extractOptions(args0);
-    val dst = chosenOptions("destination");
-    val pre = chosenOptions.getOrElse("cutPrefix", "");
-    verbose = chosenOptions.getOrElse("verbose", "false") == "true";
-    for (p <- args) {
-      val srcFile = new File(p);
-      if (srcFile.getParent() != null && ! srcFile.getParent().startsWith(pre))
-        throw new RuntimeException("srcFile "+srcFile.getPath()+" doesn't start with "+pre);
-      val parentDir = 
-        if (srcFile.getParent() != null) {
-          new File(dst+"/"+srcFile.getParent().substring(pre.length));
-        } else {
-          new File(dst);
-        }
-      parentDir.mkdirs();
-      compileSingleFile(srcFile, new File(parentDir.getPath()+"/JS$"+srcFile.getName().split("\\.").reverse.drop(1).reverse.mkString(".").replaceAll("[^a-zA-Z0-9]", "\\$")+".class"));
-    }
-  }
-}
+// 
+//   def printUsage() {
+//     println((new CliParser(options)).usage);
+//   }
+//   def extractOptions(args0: Array[String]) = {
+//     val parser = new CliParser(options);
+//     val (opts, args) = 
+//       try {
+//         parser.parseOptions(args0);
+//       } catch {
+//         case e: ParseException => {
+//           println("error: "+e.getMessage());
+//           printUsage();
+//           System.exit(1);
+//           null;
+//         }
+//       }
+//     for ((k, v) <- opts) {
+//       chosenOptions(k) = v;
+//     }
+//     args
+//   }
+//   def compileSingleFile(src: File, dst: File) {
+//     val source = BetterFile.getFileContents(src);
+//     vprintln("to: "+dst.getPath());
+//     val classBytes = compilationutils.compileToBytes(source, src.getName(), 1, dst.getName().split("\\.")(0));
+// 
+//     val fos = new java.io.FileOutputStream(dst);
+//     fos.write(classBytes);
+//   }
+// 
+//   def main(args0: Array[String]) {
+//     // should contain paths, relative to PWD, of javascript files to compile.
+//     val args = extractOptions(args0);
+//     val dst = chosenOptions("destination");
+//     val pre = chosenOptions.getOrElse("cutPrefix", "");
+//     verbose = chosenOptions.getOrElse("verbose", "false") == "true";
+//     for (p <- args) {
+//       val srcFile = new File(p);
+//       if (srcFile.getParent() != null && ! srcFile.getParent().startsWith(pre))
+//         throw new RuntimeException("srcFile "+srcFile.getPath()+" doesn't start with "+pre);
+//       val parentDir = 
+//         if (srcFile.getParent() != null) {
+//           new File(dst+"/"+srcFile.getParent().substring(pre.length));
+//         } else {
+//           new File(dst);
+//         }
+//       parentDir.mkdirs();
+//       compileSingleFile(srcFile, new File(parentDir.getPath()+"/JS$"+srcFile.getName().split("\\.").reverse.drop(1).reverse.mkString(".").replaceAll("[^a-zA-Z0-9]", "\\$")+".class"));
+//     }
+//   }
+// }

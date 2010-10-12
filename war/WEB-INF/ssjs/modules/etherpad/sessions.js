@@ -27,7 +27,7 @@ import("cache_utils.syncedWithCache");
 jimport("java.lang.System.out.println");
 
 var _TRACKING_COOKIE_NAME = "ET";
-var _SESSION_COOKIE_NAME = "ES";
+var _SESSION_COOKIE_NAME = "JSESSIONID";
 
 function _updateInitialReferrer(data) {
 
@@ -78,7 +78,7 @@ function getSession(subDomain) {
 }
 
 function getSessionId() {
-  return sessions.getSessionId(_SESSION_COOKIE_NAME, false, _getScopedDomain());
+  return sessions.getSessionId(false, _getScopedDomain());
 }
 
 function _getGlobalSessionId() {
@@ -86,30 +86,36 @@ function _getGlobalSessionId() {
 }
 
 function isAnEtherpadAdmin() {
-  var sessionId = _getGlobalSessionId();
-  if (! sessionId) {
-    return false;
-  }
-
-  return syncedWithCache("isAnEtherpadAdmin", function(c) {
-    return !! c[sessionId];
-  });
+  return getSession().isAdmin;
+  // var sessionId = _getGlobalSessionId();
+  // if (! sessionId) {
+  //   return false;
+  // }
+  // 
+  // return syncedWithCache("isAnEtherpadAdmin", function(c) {
+  //   return !! c[sessionId];
+  // });
 }
 
 function setIsAnEtherpadAdmin(v) {
-  var sessionId = _getGlobalSessionId();
-  if (! sessionId) {
-    return;
+  if (v) {
+    getSession().isAdmin = true;
+  } else {
+    delete getSession().isAdmin;
   }
-
-  syncedWithCache("isAnEtherpadAdmin", function(c) {
-    if (v) {
-      c[sessionId] = true;
-    }
-    else {
-      delete c[sessionId];
-    }
-  });
+  // var sessionId = _getGlobalSessionId();
+  // if (! sessionId) {
+  //   return;
+  // }
+  // 
+  // syncedWithCache("isAnEtherpadAdmin", function(c) {
+  //   if (v) {
+  //     c[sessionId] = true;
+  //   }
+  //   else {
+  //     delete c[sessionId];
+  //   }
+  // });
 }
 
 //--------------------------------------------------------------------------------

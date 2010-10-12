@@ -35,7 +35,7 @@ import("jsutils.*");
 import("funhtml");
 
 jimport("java.lang.System.out.println");
-jimport("net.appjet.ajstdlib.execution.executeCodeInNewScope");
+jimport("appjet.execution.executeCodeInNewScope");
 
 /* Make a split function like Ruby's: "abc".split(/b/) -> ['a', 'b', 'c'] */
 function rsplit(x, regex) {

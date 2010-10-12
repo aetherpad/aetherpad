@@ -20,6 +20,7 @@
 
 /** @ignore */
 function _cx() { return appjet.context };
+function _res() { return _cx().response() };
 
 /** @ignore */
 function _cookiestring(c) {
@@ -60,7 +61,7 @@ function _cookiedate(d) {
 var response = {
 
 get isDefined() {
-  return _cx().response() != null;
+  return _res() != null;
 }
 
 };
@@ -69,7 +70,7 @@ get isDefined() {
  * Halts the program immediately and returns 403 Forbidden error to the user.
  */
 response.forbid = function() {
-  _cx().response().error(403, "Forbidden");
+  _res().error(403, "Forbidden");
 };
 
 /**
@@ -80,14 +81,14 @@ response.forbid = function() {
  *   code will be executed.
  */
 response.stop = function(renderCurrentPage) {
-  _cx().response().stop();
+  _res().stop();
 };
 
 /**
  * Halts the program immediately and returns a 404 not found error to the user.
  */
 response.notFound = function() {
-  _cx().response().error(404, "404: Not found");
+  _res().error(404, "404: Not found");
 };
 
 /**
@@ -104,7 +105,7 @@ response.redirect = function(path) {
     // make sure absolute URL has proper host/port
     path = request.scheme+"://"+request.host+path;
   }
-  _cx().response().redirect(path);
+  _res().redirect(path);
 };
 
 /**
@@ -113,18 +114,18 @@ response.redirect = function(path) {
  * @param {number} newCode
  */
 response.setStatusCode = function(newCode) {
-  _cx().response().setStatusCode(newCode);
+  _res().setStatusCode(newCode);
 };
 response.getStatusCode = function() {
-  return _cx().response().getStatusCode();
+  return _res().getStatusCode();
 };
 
 response.sendError = function(errorCode, errorHtml) {
-  _cx().response().error(errorCode, errorHtml);
+  _res().error(errorCode, errorHtml);
 };
 
 response.reset = function() {
-  _cx().response().reset();
+  _res().reset();
 };
 
 /**
@@ -137,7 +138,7 @@ response.setHeader('Cache-Control', 'no-cache');
  * @param {string} value
  */
 response.setHeader = function(name, value) {
-  _cx().response().setHeader(name, value);
+  _res().setHeader(name, value);
 };
 
 /**
@@ -148,7 +149,7 @@ response.setHeader = function(name, value) {
  * @param {string} value
  */
 response.addHeader = function(name, value) {
-  _cx().response().addHeader(name, value);
+  _res().addHeader(name, value);
 };
 
 /**
@@ -163,7 +164,7 @@ response.getHeader = function(name) {
   if (! this.isDefined) {
     return [];
   } else {
-    return _cx().response().getHeader(name);
+    return _res().getHeader(name);
   }
 };
 
@@ -173,7 +174,7 @@ response.getHeader = function(name) {
  * @param {string} name
  */
 response.removeHeader = function(name) {
-  _cx().response().removeHeader(name);
+  _res().removeHeader(name);
 };
 
 /**
@@ -181,7 +182,7 @@ response.removeHeader = function(name) {
  * @param {string} data will be written, verbatim, to the HTTP resonse.
  */
 response.write = function(data) {
-  _cx().response().write(data);
+  _res().write(data);
 };
 
 /**
@@ -191,7 +192,7 @@ response.write = function(data) {
  * @param {string} data will be written, verbatim, to the HTTP resonse.
  */
 response.writeBytes = function(data) {
-  _cx().response().writeBytes(data);
+  _res().writeBytes(data);
 };
 
 //----------------------------------------------------------------
@@ -260,11 +261,11 @@ response.getCookie = function(name) {
  * @param {string} contentType the new content-type
  */
 response.setContentType = function(contentType) {
-  _cx().response().setContentType(contentType);
+  _res().setContentType(contentType);
 };
 
 response.getCharacterEncoding = function() {
-  return _cx().response().getCharacterEncoding();
+  return _res().getCharacterEncoding();
 }
 
 response.neverCache = function() {
@@ -290,5 +291,5 @@ response.alwaysCache = function() {
 };
 
 response.setGzip = function(gzip) {
-  _cx().response().setGzip(gzip);
+  _res().setGzip(gzip);
 }

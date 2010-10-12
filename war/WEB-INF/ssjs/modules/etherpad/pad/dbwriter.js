@@ -307,15 +307,15 @@ function writePadNow(pad, andFlush) {
 
       //log.info("Wrote pad "+pad.getId()+" in "+(t2-t1)+" ms.");
 
-      var now = +(new Date);
-      var sched = _dbwriter().scheduledFor.get(pad.getId());
-      if (sched) {
-        var delay = now - sched;
-        if (delay > MIN_WRITE_DELAY_NOTIFY_MS) {
-          log.warn("dbwriter["+pad.getId()+"] behind schedule by "+delay+"ms");
-        }
-        _dbwriter().scheduledFor.remove(pad.getId());
-      }
+      // var now = +(new Date);
+      // var sched = _dbwriter().scheduledFor.get(pad.getId());
+      // if (sched) {
+      //   var delay = now - sched;
+      //   if (delay > MIN_WRITE_DELAY_NOTIFY_MS) {
+      //     log.warn("dbwriter["+pad.getId()+"] behind schedule by "+delay+"ms");
+      //   }
+      //   _dbwriter().scheduledFor.remove(pad.getId());
+      // }
     }
     if (andFlush) {
       // remove from cache

@@ -77,7 +77,7 @@ repeat = function(s, n) {
  * @return {string} HTML-formatted string
  */
 function _stringToHTML(str) {
-  return String(net.appjet.oui.Util.stringToHTML(str));
+  return String(Packages.appjet.stringutils.stringToHTML(str));
 }
 
 // used to convert an object to HTML when the object does not have a
@@ -377,7 +377,7 @@ function randomString(nchars) {
 }
 
 function md5(x) {
-  return net.appjet.ajstdlib.md5.md5(x);
+  return Packages.appjet.md5.md5(x);
 }
 
 function randomHash(len) {

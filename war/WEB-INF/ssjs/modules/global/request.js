@@ -18,6 +18,34 @@ import("stringutils.trim");
 import("jsutils.scalaF0")
 
 function _cx() { return appjet.context };
+function _req() { return _cx().request() };
+function _toStringArray(obj) {
+  if (obj instanceof Array) {
+    return obj.map(String);
+  }
+  if (obj instanceof Packages.java.util.Enumeration) {
+    var a = [];
+    while (obj.hasMoreElements()) {
+      a.push(String(obj.nextElement()));
+    }
+    return a;
+  }
+  throw new Error("toStringArray: Unknown object type "+obj);
+}
+function _enumeratorMap(object, keysFnName, valuesFnName) {
+  return function() {
+    var map = {};
+    var keys = object[keysFnName]();
+    while (keys.hasMoreElements()) {
+      var key = keys.nextElement();
+      map[key] = _toStringArray(object[valuesFnName](key));
+      if (map[key].length == 1) {
+        map[key] = map[key][0];
+      }
+    }
+    return map;    
+  }
+}
 
 function _addIfNotPresent(obj, key, value) {
   if (!(key in obj)) obj[key] = value;
@@ -28,41 +56,15 @@ var request = {
 get isDefined() {
   return (
     _cx() != null && 
-    _cx().request() != null && 
-    (! _cx().request().isFake()) && 
-    _cx().request().req() != null
+    _req() != null
   );
 },
 
 get cache() {
-  var req = _cx().request().req();
-  if (req.getAttribute("jsCache") == null) {
-    req.setAttribute("jsCache", {});
+  if (_req().getAttribute("jsCache") == null) {
+    _req().setAttribute("jsCache", {});
   }
-  return req.getAttribute("jsCache");
-},
-
-get continuation() {
-  if (this.isDefined) {
-    var c = Packages.net.appjet.ajstdlib.execution.getContinuation(_cx());
-    var u = this.underlying;
-    return {
-      suspend: function(timeout) { 
-        return Packages.net.appjet.ajstdlib.execution.sync(
-          u, scalaF0(function() { return c.suspend(timeout); }));
-      },
-      resume: function() { 
-        Packages.net.appjet.ajstdlib.execution.sync(
-          u, scalaF0(function() { c.resume(); })) 
-      }
-    }
-  }
-},
-
-get underlying() {
-  if (this.isDefined) {
-    return _cx().request().req();
-  }
+  return _req().getAttribute("jsCache");
 },
 
 /**
@@ -77,7 +79,7 @@ get underlying() {
  */
 get path() {
   if (this.isDefined) {
-    return String(_cx().request().path());
+    return String(_req().getRequestURI());
   }
 },
 
@@ -91,23 +93,8 @@ get path() {
  */
 get query() {
   if (this.isDefined) {
-    if (_cx().request().query() != null) {
-      return _cx().request().query();
-    }
-  }
-},
-
-/**
- * The content of a POST request. Retrieving this value may interfere
- * with the ability to get post request parameters sent in the body of
- * a request via the "params" property. Use with care.
- *
- * @type string
- */
-get content() {
-  if (this.isDefined) {
-    if (_cx().request().content() != null) {
-      return _cx().request().content();
+    if (_req().getQueryString() != null) {
+      return String(_req().getQueryString());
     }
   }
 },
@@ -118,7 +105,7 @@ get content() {
  */
 get method() {
   if (this.isDefined) {
-    return String(_cx().request().method().toUpperCase());
+    return String(_req().getMethod().toUpperCase());
   }
 },
 
@@ -144,7 +131,7 @@ get isPost() {
  */
 get scheme() {
   if (this.isDefined) {
-    return String(_cx().request().scheme());
+    return String(_req().getScheme());
   }
 },
 
@@ -162,7 +149,7 @@ get isSSL() {
  */
 get clientAddr() {
   if (this.isDefined) {
-    return String(_cx().request().clientAddr());
+    return String(_req().getRemoteAddr());
   }
 },
 
@@ -177,24 +164,8 @@ get clientAddr() {
  */
 get params() {
   if (this.isDefined) {
-    var cx = _cx();
-    var req = cx.request();
-    return cx.attributes().getOrElseUpdate("requestParams",
-      scalaF0(function() { return req.params(cx.runner().globalScope()); }));
-  }
-},
-
-/**
- * Uploaded files associated with the request, from the contents of a POST.
- * 
- * @type object
- */
-get files() {
-  if (this.isDefined) {
-    var cx = _cx();
-    var req = cx.request();
-    return cx.attributes().getOrElseUpdate("requestFiles",
-      scalaF0(function() { return req.files(cx.runner().globalScope()); }));
+    return _cx().attributes().getOrElseUpdate("requestParams",
+      scalaF0(_enumeratorMap(_req(), "getParameterNames", "getParameterValues")));
   }
 },
 
@@ -210,35 +181,45 @@ print(request.headers["User-Agent"]);
  */
 get headers() {
   if (this.isDefined) {
-    var cx = _cx();
-    var req = cx.request();
-    return cx.attributes().getOrElseUpdate("requestHeaders",
-      scalaF0(function() { return req.headers(cx.runner().globalScope()); }));
+    return _cx().attributes().getOrElseUpdate("requestHeaders",
+      scalaF0(_enumeratorMap(_req(), "getHeaderNames", "getHeaders")));
   }
 },
 
 // TODO: this is super inefficient to do each time someone accesses
 // request.cookies.foo.  We should probably store _cookies in the requestCache.
 get cookies() {
-  var _cookies = {};
-  var cookieHeaderArray = this.headers['Cookie'];
-  if (!cookieHeaderArray) { return {}; }
-  if (!(cookieHeaderArray instanceof Array))
-    cookieHeaderArray = [cookieHeaderArray];
-  var name, val;
+  if (this.isDefined) {
+    var reqHeaders = this.headers;
+    return _cx().attributes().getOrElseUpdate("requestCookies",
+      scalaF0(function() {
+        var cookies = {};
+        var cookieHeaderArray = reqHeaders['Cookie'];
+        if (!cookieHeaderArray) { return {}; }
+        if (!(cookieHeaderArray instanceof Array))
+          cookieHeaderArray = [cookieHeaderArray];
+        var name, val;
 
-  cookieHeaderArray.forEach(function (cookieHeader) {
-    cookieHeader.split(';').forEach(function(cs) {
-      var parts = cs.split('=');
-      if (parts.length == 2) {
-	name = trim(parts[0]);
-	val = trim(unescape(parts[1]));
-	_addIfNotPresent(_cookies, name, val);
-      }
-    });
-  });
+        cookieHeaderArray.forEach(function (cookieHeader) {
+          cookieHeader.split(';').forEach(function(cs) {
+            var parts = cs.split('=');
+            if (parts.length == 2) {
+              name = trim(parts[0]);
+              val = trim(unescape(parts[1]));
+              _addIfNotPresent(cookies, name, val);
+            }
+          });
+        });
 
-  return _cookies;
+        return cookies;
+      }));
+  }
+},
+
+get session() {
+  return function(create) {
+    return _req().getSession(create ? true : false);
+  };
 },
 
 /**
@@ -268,12 +249,6 @@ get uniqueId() {
   return String(_cx().executionId());
 },
 
-get protocol() {
-  if (this.isDefined) {
-    return String(_cx().request().protocol());
-  }
-},
-  
 get userAgent() {
   if (this.isDefined) {
     var agentString = (request.headers['User-Agent'] || "?");
@@ -285,11 +260,11 @@ get userAgent() {
 },
 
 get acceptsGzip() {
-	if (this.isDefined) {
-  	var headerArray = this.headers["Accept-Encoding"];
-  	if (! (headerArray instanceof Array)) {
-  		headerArray = [headerArray];
-  	}
+  if (this.isDefined) {
+    var headerArray = this.headers["Accept-Encoding"];
+    if (! (headerArray instanceof Array)) {
+            headerArray = [headerArray];
+    }
     // Want to see if some accept-encoding header OK's gzip.
     // Starting with: "Accept-Encoding: gzip; q=0.5, deflate; q=1.0"
     // 1. Split into ["gzip; q=0.5", "delfate; q=1.0"]

@@ -72,3 +72,24 @@ function render_run() {
   }
 }
 
+import("datastore");
+jimport("com.google.appengine.api.datastore.Entity");
+jimport("com.google.appengine.api.datastore.KeyFactory");
+
+function render_dstest1() {
+  var keyName = request.params.name;
+  var ds = datastore.getDatastoreService();
+  var ent = new Entity("testcontrol.kind", String(keyName), null);
+  ent.setProperty("hi", "there");
+  ds.put(ent);
+  response.redirect("/ep/test/dstest2?name="+keyName);
+}
+
+function render_dstest2() {
+  var keyName = request.params.name;
+  var ds = datastore.getDatastoreService();
+  var ent = ds.get(KeyFactory.createKey(null, "testcontrol.kind", keyName));
+  
+  response.write("hi? "+ent.getProperty("hi"));
+}
+

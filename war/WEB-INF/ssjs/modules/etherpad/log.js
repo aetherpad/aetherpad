@@ -25,12 +25,14 @@ import("etherpad.globals.*");
 import("etherpad.pad.padutils");
 import("etherpad.sessions");
 import("etherpad.utils.*");
+import("fastJSON");
 
 import("etherpad.pro.pro_accounts.getSessionProAccount");
 
 jimport("java.io.FileWriter");
 jimport("java.lang.System.out.println");
 jimport("java.io.File");
+jimport("java.util.logging.Logger");
 jimport("net.appjet.ajstdlib.execution");
 
 
@@ -138,31 +140,26 @@ function logRequest() {
 }
 
 function _log(name, m) {
-  var cache = appjet.cache;
+  if (typeof(m) != 'string') {
+    if (typeof(m) == 'object') {
+      m = fastJSON.stringify(m);
+    } else {
+      m = String(m);
+    }
+  }
 
-  callsyncIfTrue(
-    cache,
-    function() { return ! ('logWriters' in cache)},
-    function() { cache.logWriters = {}; }
-  );
-
-  callsyncIfTrue(
-    cache.logWriters,
-    function() { return !(name in cache.logWriters) },
-    function() {
-      lw = new net.appjet.oui.GenericLogger('frontend', name, true);
-      if (! isProduction()) {
-        lw.setEchoToStdOut(true);
-      }
-      lw.start();
-      cache.logWriters[name] = lw;
-    });
-
-  var lw = cache.logWriters[name];
-  if (typeof(m) == 'object') {
-    lw.logObject(m);
-  } else {
-    lw.log(m);
+  switch (name) {
+    case 'info':
+      Logger.getLogger("").info(m);
+      break;
+    case 'warn':
+      Logger.getLogger("").warning(m);
+      break;
+    case 'exception':
+      Logger.getLogger("").severe(m);
+      break;
+    default:
+      Logger.getLogger(name).info(m);
   }
 }
 

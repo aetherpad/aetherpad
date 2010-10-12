@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-jimport("net.appjet.oui.FastJSON");
-jimport("java.lang.System.out.println");
+jimport("appjet.FastJSON");
 
 function stringify(x) {
   return String(FastJSON.stringify(x));

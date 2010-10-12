@@ -17,9 +17,14 @@
 import("cache_utils.syncedWithCache");
 import("sqlbase.sqlcommon.*");
 import("jsutils.*");
+import("datastore");
 
 jimport("java.lang.System.out.println");
-jimport("java.sql.Statement");
+jimport("com.google.appengine.api.datastore.Entity");
+jimport("com.google.appengine.api.datastore.FetchOptions");
+jimport("com.google.appengine.api.datastore.Key");
+jimport("com.google.appengine.api.datastore.KeyFactory");
+jimport("com.google.appengine.api.datastore.Query");
 
 function _withCache(name, fn) {
   return syncedWithCache('sqlobj.'+name, fn);
@@ -187,6 +192,14 @@ function _setPreparedValues(tableName, pstmnt, keyList, obj, indexOffset) {
   }
 }
 
+function _getDatastoreValue(v) {
+  if (v.valueOf && v.getDate && v.getHours) {
+    return new java.util.Date(+v);
+  } else {
+    return v;
+  }
+}
+
 function _resultRowToJsObj(resultSet) {
   var resultObj = {};
 
@@ -201,34 +214,53 @@ function _resultRowToJsObj(resultSet) {
   return resultObj;
 }
 
+function _entityToJsObj(entity) {
+  var resultObj = {};
+  var props = entity.getProperties().entrySet().iterator();
+  while (props.hasNext()) {
+    var entry = props.next();
+    resultObj[entry.getKey()] = entry.getValue();
+  }
+  if (! resultObj.id) {
+    resultObj.id = entity.getKey();
+  }
+  return resultObj;
+}
+
+/**
+ * Converts a table name into a datastore kind
+ */
+function _getKind(tableName) {
+  return "sqlobj."+tableName;
+}
+
+function _setEntityProperties(tableName, entity, obj) {
+  keys(obj).forEach(function(k) {
+    if (! appjet.cache.sqlobj_tables ||
+        ! appjet.cache.sqlobj_tables[tableName] ||
+        appjet.cache.sqlobj_tables[tableName].indices[k]) {
+      entity.setProperty(k, _getDatastoreValue(obj[k]));
+    } else {
+      entity.setUnindexedProperty(k, _getDatastoreValue(obj[k]));
+    }
+  });
+}
+
 /*
  * Inserts the object into the given table, and returns auto-incremented ID if any.
  */
 function insert(tableName, obj) {
-  var keyList = keys(obj);
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  
+  var entity = (parentKey ?
+    new Entity(_getKind(tableName), parentKey) :
+    new Entity(_getKind(tableName)));
+  _setEntityProperties(tableName, entity, obj);
 
-  var stmnt = "INSERT INTO "+_bq(tableName)+" (";
-  stmnt += keyList.map(function(k) { return _bq(k); }).join(', ');
-  stmnt += ") VALUES (";
-  stmnt += keyList.map(function(k) { return '?'; }).join(', ');
-  stmnt += ")";
-
-  return withConnection(function(conn) {
-    var pstmnt = conn.prepareStatement(stmnt, Statement.RETURN_GENERATED_KEYS);
-    return closing(pstmnt, function() {
-      _setPreparedValues(tableName, pstmnt, keyList, obj, 0);
-      _qdebug(stmnt);
-      pstmnt.executeUpdate();
-      var rs = pstmnt.getGeneratedKeys();
-      if (rs != null) {
-        return closing(rs, function() {
-          if (rs.next()) {
-            return rs.getInt(1);
-          }
-        });
-      }
-    });
-  });
+  return ds.put(txn, entity);
 };
 
 /*
@@ -240,124 +272,115 @@ function insert(tableName, obj) {
  *  Currently only supports string equality of constraints.
  */
 function selectSingle(tableName, constraints) {
-  var keyList = keys(constraints);
-
-  var stmnt = "SELECT * FROM "+_bq(tableName)+" WHERE (";
-  stmnt += keyList.map(function(k) { return '('+_bq(k)+' = '+'?)'; }).join(' AND ');
-  stmnt += ')';
-  if (isMysql()) {
-    stmnt += ' LIMIT 1';
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  
+  if (constraints.id instanceof Key) {
+    try {
+      return _entityToJsObj(ds.get(transaction, constraints.id));
+    } catch (e) {
+      if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
+        return undefined;
+      }
+      throw e;
+    }
   }
-
-  return withConnection(function(conn) {
-    var pstmnt = conn.prepareStatement(stmnt);
-    return closing(pstmnt, function() {
-      _setPreparedValues(tableName, pstmnt, keyList, constraints, 0);
-      _qdebug(stmnt);
-      var resultSet = pstmnt.executeQuery();
-      return closing(resultSet, function() {
-        if (!resultSet.next()) {
-          return null;
-        }
-        return _resultRowToJsObj(resultSet);
-      });
-    });
+  
+  var query = new Query(_getKind(tableName), parentKey);
+  keys(constraints).forEach(function(key) {
+    query.addFilter(key, Query.FilterOperator.EQUAL, constraints[key]);
   });
-}
-
-function _makeConstraintString(key, value) {
-  if (typeof(value) != 'object' || ! (value instanceof Array)) {
-    return '('+_bq(key)+' = ?)';
+  
+  query = ds.prepare(txn, query);
+  var i = query.asIterator(FetchOptions.Builder.withLimit(1));
+  if (i.hasNext()) {
+    return _entityToJsObj(i.next());
   } else {
-    var comparator = value[0];
-    return '('+_bq(key)+' '+comparator+' ?)';
+    return null;
   }
 }
 
-function _preparedValuesConstraints(constraints) {
-  var c = {};
-  eachProperty(constraints, function(k, v) {
-    c[k] = (typeof(v) != 'object' || ! (v instanceof Array) ? v : v[1]);
-  });
-  return c;
-}
-
-function selectMulti(tableName, constraints, options) {
+function _getEntitiesForConstraints(tableName, constraints, options) {
   if (!options) {
     options = {};
   }
 
-  var constraintKeys = keys(constraints);
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
 
-  var stmnt = "SELECT * FROM "+_bq(tableName)+" ";
+  var query = new Query(_getKind(tableName), parentKey);
+  keys(constraints).forEach(function(key) {
+    query.addFilter(key, Query.FilterOperator.EQUAL, constraints[key]);
+  });
 
-  if (constraintKeys.length > 0) {
-    stmnt += "WHERE (";
-    stmnt += constraintKeys.map(function(key) { 
-        return _makeConstraintString(key, constraints[key]);
-      }).join(' AND ');
-    stmnt += ')';
-  }
-
-  if (options.orderBy) {
-    var orderEntries = [];
+  if (options.orderBy) {    
     options.orderBy.split(",").forEach(function(orderBy) {
-      var asc = "ASC";
+      var direction = Query.SortDirection.ASCENDING;
       if (orderBy.charAt(0) == '-') {
         orderBy = orderBy.substr(1);
-        asc = "DESC";
+        direction = Query.SortDirection.DESCENDING;
       }
-      orderEntries.push(_bq(orderBy)+" "+asc);
+      query.addSort(orderBy, direction);
     });
-    stmnt += " ORDER BY "+orderEntries.join(", ");
+  }
+
+  if (options.keysOnly) {
+    query.setKeysOnly();
   }
   
+  query = ds.prepare(txn, query);
+  var fetchOptions = FetchOptions.Builder.withDefaults();
+
   if (options.limit) {
-    stmnt += " LIMIT "+options.limit;
+    fetchOptions.limit(options.limit);
   }
 
-  return withConnection(function(conn) {
-    var pstmnt = conn.prepareStatement(stmnt);
-    return closing(pstmnt, function() {
-      _setPreparedValues(
-        tableName, pstmnt, constraintKeys, 
-        _preparedValuesConstraints(constraints), 0);
+  var results = query.asIterator(fetchOptions);
+  var resultArray = [];
+  while (results.hasNext()) {
+    resultArray.push(results.next());
+  }
+  
+  return resultArray;  
+}
 
-      _qdebug(stmnt);
-      var resultSet = pstmnt.executeQuery();
-      var resultArray = [];
-
-      return closing(resultSet, function() {
-        while (resultSet.next()) {
-          resultArray.push(_resultRowToJsObj(resultSet));
-        }
-
-        return resultArray;
-      });
-    });
-  });
+function selectMulti(tableName, constraints, options) {
+  return _getEntitiesForConstraints(tableName, constraints, options).map(
+    _entityToJsObj);
 }
 
 /* returns number of rows updated */
 function update(tableName, constraints, obj) {
-  var objKeys = keys(obj);
-  var constraintKeys = keys(constraints);
-
-  var stmnt = "UPDATE "+_bq(tableName)+" SET ";
-  stmnt += objKeys.map(function(k) { return ''+_bq(k)+' = ?'; }).join(', ');
-  stmnt += " WHERE (";
-  stmnt += constraintKeys.map(function(k) { return '('+_bq(k)+' = ?)'; }).join(' AND ');
-  stmnt += ')';
-
-  return withConnection(function(conn) {
-    var pstmnt = conn.prepareStatement(stmnt);
-    return closing(pstmnt, function() {
-      _setPreparedValues(tableName, pstmnt, objKeys, obj, 0);
-      _setPreparedValues(tableName, pstmnt, constraintKeys, constraints, objKeys.length);
-      _qdebug(stmnt);
-      return pstmnt.executeUpdate();
-    });
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  
+  if (constraints.id instanceof Key) {
+    // this isn't a constrained update, it's a single-object update.
+    try {
+      var entity = ds.get(transaction, obj.id);
+      _setEntityProperties(tableName, entity, obj);
+      ds.put(transaction, entity);
+      return 1;      
+    } catch (e) {
+      if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
+        return 0;
+      }
+      throw e;
+    }
+  }
+  
+  var matchingEntities = _getEntitiesForConstraints(tableName, constraints);
+  matchingEntities.forEach(function(entity) {
+    _setEntityProperties(tableName, entity, obj);
+    ds.put(txn, entity);
   });
+  return matchingEntities.length;
 }
 
 function updateSingle(tableName, constraints, obj) {
@@ -368,18 +391,19 @@ function updateSingle(tableName, constraints, obj) {
 }
 
 function deleteRows(tableName, constraints) {
-  var constraintKeys = keys(constraints);
-  var stmnt = "DELETE FROM "+_bq(tableName)+" WHERE (";
-  stmnt += constraintKeys.map(function(k) { return '('+_bq(k)+' = ?)'; }).join(' AND ');
-  stmnt += ')';
-  withConnection(function(conn) {
-    var pstmnt = conn.prepareStatement(stmnt);
-    closing(pstmnt, function() {
-      _setPreparedValues(tableName, pstmnt, constraintKeys, constraints);
-      _qdebug(stmnt);
-      pstmnt.executeUpdate();
-    });
-  })
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+
+  var matchingEntities =
+    _getEntitiesForConstraints(tableName, constraints, {keysOnly: true});
+  ds["delete"](txn, new java.lang.Iterable({
+    iterator: function() { return java.lang.Iterator({
+      pos: 0,
+      hasNext: function() { return this.pos < matchingEntities.length; },
+      next: function() { return matchingEntities[this.pos++].getKey(); }
+    })}
+  }));
 }
 
 //----------------------------------------------------------------
@@ -391,115 +415,21 @@ function deleteRows(tableName, constraints) {
  * javascript object.
  */
 function createTable(tableName, colspec, indices) {
-  if (doesTableExist(tableName)) {
+  if (! appjet.cache.sqlobj_tables) {
+    appjet.cache.sqlobj_tables = {};
+  }
+  var _tables = appjet.cache.sqlobj_tables;
+  if (_tables[tableName]) {
     return;
   }
-
-  var stmnt = "CREATE TABLE "+_bq(tableName)+ " (";
-  stmnt += keys(colspec).map(function(k) { return (_bq(k) + ' ' + colspec[k]); }).join(', ');
-  if (indices) {
-    stmnt += ', ' + keys(indices).map(function(k) { return 'INDEX (' + _bq(k) + ')'; }).join(', ');
-  }
-  stmnt += ')'+createTableOptions();
-  _execute(stmnt);
-}
-
-function dropTable(tableName) {
-  _execute("DROP TABLE "+_bq(tableName));
-}
-
-function dropAndCreateTable(tableName, colspec, indices) {
-  if (doesTableExist(tableName)) {
-    dropTable(tableName);
-  }
-
-  return createTable(tableName, colspec, indices);
-}
-
-function renameTable(oldName, newName) {
-  _executeUpdate("RENAME TABLE "+_bq(oldName)+" TO "+_bq(newName));
-}
-
-function modifyColumn(tableName, columnName, newSpec) {
-  _executeUpdate("ALTER TABLE "+_bq(tableName)+" MODIFY "+_bq(columnName)+" "+newSpec);
-}
-
-function alterColumn(tableName, columnName, alteration) {
-  var q = "ALTER TABLE "+_bq(tableName)+" ALTER COLUMN "+_bq(columnName)+" "+alteration;
-  _executeUpdate(q);
-}
-
-function changeColumn(tableName, columnName, newSpec) {
-  var q = ("ALTER TABLE "+_bq(tableName)+" CHANGE COLUMN "+_bq(columnName)
-           +" "+newSpec);
-  _executeUpdate(q);
-}
-
-function addColumns(tableName, colspec) {
-  inTransaction(function(conn) {
-    eachProperty(colspec, function(name, definition) {
-      var stmnt = "ALTER TABLE "+_bq(tableName)+" ADD COLUMN "+_bq(name)+" "+definition;
-      _executeUpdate(stmnt);
-    });
-  });
-}
-
-function dropColumn(tableName, columnName) {
-  var stmnt = "ALTER TABLE "+_bq(tableName)+" DROP COLUMN "+_bq(columnName);
-  _executeUpdate(stmnt);
-}
-
-function listTables() {
-  return withConnection(function(conn) {
-    var metadata = conn.getMetaData();
-    var resultSet = metadata.getTables(null, null, null, null);
-    var resultArray = [];
-
-    return closing(resultSet, function() {
-      while (resultSet.next()) {
-        resultArray.push(resultSet.getString("TABLE_NAME"));
-      }
-      return resultArray;
-    });
-  });
-}
-
-function setTableEngine(tableName, engineName) {
-  var stmnt = "ALTER TABLE "+_bq(tableName)+" ENGINE="+_bq(engineName);
-  _executeUpdate(stmnt);
-}
-
-function getTableEngine(tableName) {
-  if (!isMysql()) {
-    throw Error("getTableEngine() only supported by MySQL database type.");
-  }
-
-  var tableEngines = {};
-
-  withConnection(function(conn) {
-    var stmnt = "show table status";
-    var pstmnt = conn.prepareStatement(stmnt);
-    closing(pstmnt, function() {
-      _qdebug(stmnt);
-      var resultSet = pstmnt.executeQuery();
-      closing(resultSet, function() {
-        while (resultSet.next()) {
-          var n = resultSet.getString("Name");
-          var eng = resultSet.getString("Engine");
-          tableEngines[n] = eng;
-        }
-      });
-    });
-  });
-
-  return tableEngines[tableName];
-}
-
-function createIndex(tableName, columns) {
-  var indexName = "idx_"+(columns.join("_"));
-  var stmnt = "CREATE INDEX "+_bq(indexName)+" on "+_bq(tableName)+" (";
-  stmnt += columns.map(_bq).join(", ");
-  stmnt += ")";
-  _executeUpdate(stmnt);
+  _tables[tableName] = { keys: colspec, indices: indices };
+  // 
+  // var stmnt = "CREATE TABLE "+_bq(tableName)+ " (";
+  // stmnt += keys(colspec).map(function(k) { return (_bq(k) + ' ' + colspec[k]); }).join(', ');
+  // if (indices) {
+  //   stmnt += ', ' + keys(indices).map(function(k) { return 'INDEX (' + _bq(k) + ')'; }).join(', ');
+  // }
+  // stmnt += ')'+createTableOptions();
+  // _execute(stmnt);
 }
 

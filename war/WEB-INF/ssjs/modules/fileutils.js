@@ -26,11 +26,13 @@ jimport("java.io.File",
 	"net.appjet.oui.JarVirtualFile");
 
 function readFileBytes(path) {
-  var jfile = new JarVirtualFile(path);
-  if (!jfile.exists() || jfile.isDirectory()) {
-    throw 'Not a file: '+path;
-  }
-  return net.appjet.common.util.BetterFile.getStreamBytes(jfile.openStream());
+  java.lang.System.out.println("reading path: "+path);
+  return readRealFileBytes(path);
+  // var jfile = new JarVirtualFile(path);
+  // if (!jfile.exists() || jfile.isDirectory()) {
+  //   throw 'Not a file: '+path;
+  // }
+  // return net.appjet.common.util.BetterFile.getStreamBytes(jfile.openStream());
 }
 
 function readFile(path) {
@@ -43,7 +45,7 @@ function readFile(path) {
 }
 
 function fileLastModified(path) {
-  var jfile = new JarVirtualFile(path);
+  var jfile = new File(path);
   if (!jfile.exists()) {
     throw "Not a file: "+path;
   }

@@ -59,7 +59,7 @@ function renderTemplateAsString(filename, data) {
   data = data || {};
   data.helpers = helpers; // global helpers
 
-  var f = "/templates/"+filename;
+  var f = "WEB-INF/templates/"+filename;
   if (! appjet.scopeCache.ejs) {
     appjet.scopeCache.ejs = {};
   }

@@ -25,13 +25,15 @@ jimport("java.lang.System");
 
 
 function isPNE() {
-  if (appjet.cache.fakePNE || appjet.config['etherpad.fakePNE']) {
-    return true;
-  }
-  if (getVersionString()) {
-    return true;
-  }
   return false;
+  
+  // if (appjet.cache.fakePNE || appjet.config['etherpad.fakePNE']) {
+  //   return true;
+  // }
+  // if (getVersionString()) {
+  //   return true;
+  // }
+  // return false;
 }
 
 /**

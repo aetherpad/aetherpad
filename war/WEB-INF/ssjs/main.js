@@ -20,7 +20,6 @@ import("fastJSON");
 import("jsutils.*");
 import("sqlbase.sqlcommon");
 import("stringutils");
-import("sessions.{readLatestSessionsFromDisk,writeSessionsToDisk}");
 
 import("etherpad.billing.team_billing");
 import("etherpad.globals.*");
@@ -81,7 +80,7 @@ serverhandlers.startupHandler = function() {
   statistics.onStartup();
   migration_runner.onStartup();
   pad_migrations.onStartup();
-  model.onStartup();
+//  model.onStartup();
   collab_server.onStartup();
   pad_control.onStartup();
   dbwriter.onStartup();
@@ -91,7 +90,6 @@ serverhandlers.startupHandler = function() {
   noprowatcher.onStartup();
   team_billing.onStartup();
   collabroom_server.onStartup();
-  readLatestSessionsFromDisk();
 };
 
 serverhandlers.resetHandler = function() {
@@ -252,13 +250,10 @@ function checkRequestIsWellFormed() {
 // checkHost()
 //----------------------------------------------------------------
 function checkHost() {
-  if (appjet.config['etherpad.skipHostnameCheck'] == "true") {
-    return;
-  }
-
-  if (isPrivateNetworkEdition()) {
-    return;
-  }
+  // if (appjet.config['etherpad.skipHostnameCheck'] == "true") {
+  //   return;
+  // }
+  // 
 
   // we require the domain to either be <superdomain> or a pro domain request.
   if (SUPERDOMAINS[request.domain]) {
@@ -364,7 +359,7 @@ function handlePath() {
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
     [PrefixMatcher('/ep/script/'), forward(scriptcontrol)],
     [/^\/([^\/]+)$/, pad_control.render_pad],
-    [DirMatcher('/ep/unit-tests/'), forward(testcontrol)],
+    [DirMatcher('/ep/test/'), forward(testcontrol)],
     [DirMatcher('/ep/pne-manual/'), forward(pne_manual_control)],
     [DirMatcher('/ep/pro-help/'), forward(pro_help_control)]
   ]);

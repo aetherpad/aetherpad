@@ -14,23 +14,32 @@
  * limitations under the License.
  */
 
+/** 
+ * This isn't reqlly "SQL" anymore, it's now backed by the AppEngine datastore.
+ */
 import("jsutils.*");
 import("sqlbase.sqlcommon");
 import("fastJSON");
 import("timer");
+import("datastore");
 
 jimport("java.lang.System.out.println");
 
-function _sqlbase() {
-  return sqlcommon.getSqlBase();
+jimport("com.google.appengine.api.datastore.Entity");
+jimport("com.google.appengine.api.datastore.FetchOptions");
+jimport("com.google.appengine.api.datastore.KeyFactory");
+jimport("com.google.appengine.api.datastore.Query");
+
+function _getKind(tableName) {
+  return "sqlbase."+tableName;
 }
 
-/**
- * Creates a SQL table suitable for storing a mapping from String to JSON value.
- * Maximum key length is 128 characters. Has no effect if the table already exists.
- */
-function createJSONTable(tableName) {
-  _sqlbase().createJSONTable(String(tableName));
+function _makeDatastoreKey(parentKey, tableName, stringKey) {
+  return KeyFactory.createKey(parentKey || null, _getKind(tableName), stringKey);
+}
+
+function getPadParentKey(padId) {
+  return _makeDatastoreKey(null, "PAD_META", padId);
 }
 
 /**
@@ -39,34 +48,65 @@ function createJSONTable(tableName) {
  * exist.
  */
 function getJSON(tableName, stringKey) {
-  var result = _sqlbase().getJSON(String(tableName), String(stringKey));
-  if (result) {
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
 
-    return fastJSON.parse(String(result))['x'];
-    
-    /* performance-testing JSON
-    var obj1 = timer.time("JSON.parse (json2)", function() {
-      return JSON.parse(String(result))['x'];
-    });
-    var obj2 = timer.time("JSON.parse (fastJSON)", function() {
-      return fastJSON.parse(String(result))['x'];
-    });
-    return obj2;
-    */
+  try {
+    var result = ds.get(txn, _makeDatastoreKey(parentKey, tableName, stringKey));
+    if (result) {
+      return fastJSON.parse(String(result.getProperty("json")))['x'];
+    } else {
+      return undefined;
+    }
+  } catch (e) {
+    if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
+      return undefined;
+    }
+    throw e;
   }
-  return undefined;
 }
 
 function getAllJSON(tableName, start, count) {
-  var result = _sqlbase().getAllJSON(String(tableName), Number(start), Number(count));
-  return Array.prototype.map.call(result, function(x) {
-    return {id: x.id(), value: fastJSON.parse(String(x.value()))['x']};
-  })
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  var query = new Query(_getKind(tableName), parentKey);
+  var i = ds.prepare(txn, query).asIterator(
+    FetchOptions.Builder.withOffset(start).limit(count));
+  
+  var results = [];
+  if (i) {
+    while (i.hasNext()) {
+      var next = i.next();
+      results.push({
+        id: next.getKey().getName(), 
+        value: fastJSON.parse(String(next.getProperty("json")))['x']
+      });
+    }
+  }
+  return results;
 }
 
 function getAllJSONKeys(tableName) {
-  var result = _sqlbase().getAllJSONKeys(String(tableName));
-  return Array.prototype.map.call(result, function(x) { return String(x); });
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  var query = (new Query(_getKind(tableName), parentKey)).setKeysOnly(true);
+  var i = ds.prepare(txn, query).asIterator();
+  
+  var results = [];
+  if (i) {
+    while (i.hasNext()) {
+      results.push(i.next().getKey().getName());
+    }
+  }
+  return results;
 }
 
 /**
@@ -74,29 +114,19 @@ function getAllJSONKeys(tableName) {
  * Maximum key length is 128 characters. Requires that the table exist.
  */
 function putJSON(tableName, stringKey, objectOrValue) {
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
   var obj = ({x:objectOrValue});
-  
   var json = fastJSON.stringify(obj);
+  var entity = new Entity(_getKind(tableName), stringKey, parentKey);
 
-  /* performance-testing JSON
+  // Don't index the json, duh.
+  entity.setUnindexedProperty("json", json);
 
-  var json1 = timer.time("JSON.stringify (json2)", function() { 
-    return JSON.stringify(obj);
-  });
-  var json2 = timer.time("JSON.stringify (fastJSON)", function() {
-    return fastJSON.stringify(obj);
-  });
-
-  if (json1 != json2) {
-    println("json strings do not match!");
-    println("\n\n");
-    println(json1);
-    println("\n");
-    println(json2);
-    println("\n\n");
-  }*/
-
-  _sqlbase().putJSON(String(tableName), String(stringKey), json);
+  ds.put(txn, entity);
 }
 
 /**
@@ -104,18 +134,17 @@ function putJSON(tableName, stringKey, objectOrValue) {
  * exist.
  */
 function deleteJSON(tableName, stringKey) {
-  _sqlbase().deleteJSON(String(tableName), String(stringKey));
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  ds["delete"](txn, _makeDatastoreKey(parentKey, tableName, stringKey));
 }
 
-/**
- * Creates a SQL table suitable for storing a mapping from (key,n) to string.
- * The mapping may be sparse, but storage is most efficient when n are consecutive.
- * The "length" of the array is not stored and must be externally maintained.
- * Maximum key length is 128 characters.  This call has no effect if the table
- * already exists.
- */
-function createStringArrayTable(tableName) {
-  _sqlbase().createStringArrayTable(String(tableName));
+function _generateStringArrayKey(parentKey, tableName, stringKey, n) {
+  var stringName = stringKey + "/" + n;
+  return _makeDatastoreKey(parentKey, tableName, stringName);
 }
 
 /**
@@ -123,8 +152,7 @@ function createStringArrayTable(tableName) {
  * is 128 characters.  Requires that the table exist.
  */
 function putStringArrayElement(tableName, stringKey, n, value) {
-  _sqlbase().putStringArrayElement(String(tableName), String(stringKey),
-				Number(n), String(value));
+  putConsecutiveStringArrayElements(tableName, stringKey, n, [value]);
 }
 
 /**
@@ -132,11 +160,16 @@ function putStringArrayElement(tableName, stringKey, n, value) {
  * one going to n=startN, the second to n=startN+1, and so on, but much more efficient.
  */
 function putConsecutiveStringArrayElements(tableName, stringKey, startN, valueArray) {
-  var putter = _sqlbase().putMultipleStringArrayElements(String(tableName), String(stringKey));
-  for(var i=0;i<valueArray.length;i++) {
-    putter.put(Number(startN)+i, String(valueArray[i]));
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  
+  for (var i = 0; i < valueArray.length; ++i) {
+    var entity = new Entity(_generateStringArrayKey(parentKey, tableName, stringKey, startN+i))
+    entity.setUnindexedProperty("value", String(valueArray[i]));
+    ds.put(txn, entity);
   }
-  putter.finish();
 }
 
 /**
@@ -144,17 +177,22 @@ function putConsecutiveStringArrayElements(tableName, stringKey, startN, valueAr
  * nToValue, using as few database operations as possible.
  */
 function putDictStringArrayElements(tableName, stringKey, nToValue) {
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  
   var nArray = [];
   for(var n in nToValue) {
     nArray.push(n);
   }
   nArray.sort(function(a,b) { return Number(a) - Number(b); });
   
-  var putter = _sqlbase().putMultipleStringArrayElements(String(tableName), String(stringKey));
   nArray.forEach(function(n) {
-    putter.put(Number(n), String(nToValue[n]));
+    var entity = new Entity(_generateStringArrayKey(parentKey, tableName, stringKey, n))
+    entity.setUnindexedProperty("value", String(nToValue[n]));
+    ds.put(txn, entity);
   });
-  putter.finish();
 }
 
 /**
@@ -163,10 +201,14 @@ function putDictStringArrayElements(tableName, stringKey, nToValue) {
  * exist.
  */
 function getStringArrayElement(tableName, stringKey, n) {
-  var result = _sqlbase().getStringArrayElement(String(tableName),
-    String(stringKey), Number(n));
-  if (result) {
-    return String(result);
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  var result = ds.get(txn, _generateStringArrayKey(parentKey, tableName, stringKey, n));
+  if (result && result.getProperty("value")) {
+    return String(result.getProperty("value"));
   }
   return undefined;
 }
@@ -177,11 +219,7 @@ function getStringArrayElement(tableName, stringKey, n) {
  * numeric entries in the same page.  No return value.
  */
 function getPageStringArrayElements(tableName, stringKey, n, destMap) {
-  var array = _sqlbase().getPageStringArrayElements(String(tableName), String(stringKey), n);
-  for(var i=0;i<array.length;i++) {
-    var entry = array[i];
-    destMap[entry.index()] = String(entry.value());
-  }
+  destMap[n] = getStringArrayElement(tableName, stringKey, n);
 }
 
 /**
@@ -189,17 +227,40 @@ function getPageStringArrayElements(tableName, stringKey, n, destMap) {
  * exist.
  */
 function deleteStringArrayElement(tableName, stringKey, n) {
-  _sqlbase().putStringArrayElement(String(tableName), String(stringKey), Number(n), null);
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  ds["delete"](txn, _generateStringArrayKey(parentKey, tableName, stringKey, n));
 }
 
 /**
  * Removes all mappings and metadata associated with a given key in a table.
  */
 function clearStringArray(tableName, stringKey) {
-  _sqlbase().clearStringArray(String(tableName), stringKey);
+  var ds = datastore.getDatastoreService();
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+
+  var query = new Query(_getKind(tableName), parentKey);
+  var keyString = _makeDatastoreKey(parentKey, tableName, stringKey).toString;
+  query.addFilter("__key__", Query.FilterOperator.GREATER_THAN_OR_EQUAL, keyString);
+  query.addFilter("__key__", Query.FilterOperator.LESS_THAN_OR_EQUAL, keyString+"\ufffd");
+  query.setKeysOnly();
+  query = ds.prepare(transaction, query);
+  
+  ds["delete"](txn, new java.lang.Iterable({
+    iterator: function() { return new java.lang.Iterator({
+      underlying: query.asIterator(),
+      hasNext: function() { return this.underlying.hasNext(); },
+      next: function() { return this.underlying.next().getKey(); }
+    })}
+  }));
 }
 
-function getStringArrayAllKeys(tableName) {
-  var result = _sqlbase().getStringArrayAllKeys(String(tableName));
-  return Array.prototype.map.call(result, function(x) { return String(x); });
-}
+// function getStringArrayAllKeys(tableName) {
+//   var result = _sqlbase().getStringArrayAllKeys(String(tableName));
+//   return Array.prototype.map.call(result, function(x) { return String(x); });
+// }

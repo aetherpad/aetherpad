@@ -20,6 +20,7 @@ import("sqlbase.sqlcommon");
 import("sqlbase.sqlobj");
 import("timer");
 import("sync");
+import("datastore");
 
 import("etherpad.collab.ace.easysync2.{Changeset,AttribPool}");
 import("etherpad.log");
@@ -38,30 +39,28 @@ jimport("java.util.concurrent.ConcurrentHashMap");
 jimport("net.appjet.oui.GlobalSynchronizer");
 jimport("net.appjet.oui.exceptionlog");
 
-function onStartup() {
-  appjet.cache.pads = {};
-  appjet.cache.pads.meta = new ConcurrentHashMap();
-  appjet.cache.pads.temp = new ConcurrentHashMap();
-  appjet.cache.pads.revs = new ConcurrentHashMap();
-  appjet.cache.pads.revs10 = new ConcurrentHashMap();
-  appjet.cache.pads.revs100 = new ConcurrentHashMap();
-  appjet.cache.pads.revs1000 = new ConcurrentHashMap();
-  appjet.cache.pads.chat = new ConcurrentHashMap();
-  appjet.cache.pads.revmeta = new ConcurrentHashMap();
-  appjet.cache.pads.authors = new ConcurrentHashMap();
-  appjet.cache.pads.apool = new ConcurrentHashMap();
+function _onFirstAccess() {
+  appjet.requestCache.pads = {};
+  appjet.requestCache.pads.meta = new ConcurrentHashMap();
+  appjet.requestCache.pads.temp = new ConcurrentHashMap();
+  appjet.requestCache.pads.revs = new ConcurrentHashMap();
+  appjet.requestCache.pads.revs10 = new ConcurrentHashMap();
+  appjet.requestCache.pads.revs100 = new ConcurrentHashMap();
+  appjet.requestCache.pads.revs1000 = new ConcurrentHashMap();
+  appjet.requestCache.pads.chat = new ConcurrentHashMap();
+  appjet.requestCache.pads.revmeta = new ConcurrentHashMap();
+  appjet.requestCache.pads.authors = new ConcurrentHashMap();
+  appjet.requestCache.pads.apool = new ConcurrentHashMap();
 }
 
 var _JSON_CACHE_SIZE = 10000;
 
 // to clear: appjet.cache.padmodel.modelcache.map.clear()
 function _getModelCache() {
-  return syncedWithCache('padmodel.modelcache', function(cache) {
-    if (! cache.map) {
-      cache.map = new LimitedSizeMapping(_JSON_CACHE_SIZE);
-    }
-    return cache.map;
-  });
+  if (! appjet.requestCache.modelcache) {
+    appjet.requestCache.modelCache = {};
+  }
+  return appjet.requestCache.modelCache;
 }
 
 function cleanText(txt) {
@@ -83,7 +82,12 @@ function accessPadGlobal(padId, padFunc, rwMode) {
 
   // pad is never loaded into memory (made "active") unless it has been migrated.
   // Migrations do not use accessPad, but instead access the database directly.
-  pad_migrations.ensureMigrated(padId);
+// migrations are gone.
+// pad_migrations.ensureMigrated(padId);
+
+  if (! appjet.requestCache.pads) {
+    _onFirstAccess();
+  }
 
   var mode = (rwMode || "rw").toLowerCase();
 
@@ -110,7 +114,7 @@ function accessPadGlobal(padId, padFunc, rwMode) {
       }
 
       if (meta && mode != "r") {
-	meta.status.lastAccess = +new Date();
+        meta.status.lastAccess = +new Date();
       }
 
       function getCurrentAText() {
@@ -207,150 +211,147 @@ function accessPadGlobal(padId, padFunc, rwMode) {
 
       /////////////////// "Public" API starts here (functions used by collab_server or other modules)
       var pad = {
-	// Operations that write to the data structure should
-	// set meta.dirty = true.  Any pad access that isn't
-	// done in "read" mode also sets dirty = true.
-	getId: function() { return padId; },
-	exists: function() { return !!meta; },
-	create: function(optText) {
-	  meta = {};
-	  meta.head = -1; // incremented below by addRevision
-	  pad.tempObj().atext = Changeset.makeAText("\n");
-	  meta.padId = padId,
-	  meta.keyRevInterval = 100;
-	  meta.numChatMessages = 0;
-	  var t = +new Date();
+        // Operations that write to the data structure should
+        // set meta.dirty = true.  Any pad access that isn't
+        // done in "read" mode also sets dirty = true.
+        getId: function() { return padId; },
+        exists: function() { return !!meta; },
+        create: function(optText) {
+          meta = {};
+          meta.head = -1; // incremented below by addRevision
+          pad.tempObj().atext = Changeset.makeAText("\n");
+          meta.padId = padId,
+          meta.keyRevInterval = 100;
+          meta.numChatMessages = 0;
+          var t = +new Date();
           meta.status = { validated: true };
-	  meta.status.lastAccess = t;
+          meta.status.lastAccess = t;
           meta.status.dirty = true;
           meta.supportsTimeSlider = true;
 
-	  var firstChangeset = Changeset.makeSplice("\n", 0, 0,
-	    cleanText(optText || ''));
-	  addRevision(firstChangeset, '');
+          var firstChangeset = Changeset.makeSplice("\n", 0, 0,
+            cleanText(optText || ''));
+          addRevision(firstChangeset, '');
 
-	  _insertPadMetaData(padId, meta);
+          _insertPadMetaData(padId, meta);
 
           sqlobj.insert("PAD_SQLMETA", {
             id: padId, version: 2, creationTime: new Date(t), lastWriteTime: new Date(),
             headRev: meta.head }); // headRev is not authoritative, just for info
 
-	  padevents.onNewPad(pad);
-	},
-	destroy: function() { // you may want to collab_server.bootAllUsers first
+          padevents.onNewPad(pad);
+        },
+        destroy: function() { // you may want to collab_server.bootAllUsers first
           padevents.onDestroyPad(pad);
 
-	  _destroyPadStringArray(padId, "revs");
-	  _destroyPadStringArray(padId, "revs10");
-	  _destroyPadStringArray(padId, "revs100");
-	  _destroyPadStringArray(padId, "revs1000");
-	  _destroyPadStringArray(padId, "revmeta");
-	  _destroyPadStringArray(padId, "chat");
-	  _destroyPadStringArray(padId, "authors");
-	  _removePadMetaData(padId);
-	  _removePadAPool(padId);
+          _destroyPadStringArray(padId, "revs");
+          _destroyPadStringArray(padId, "revs10");
+          _destroyPadStringArray(padId, "revs100");
+          _destroyPadStringArray(padId, "revs1000");
+          _destroyPadStringArray(padId, "revmeta");
+          _destroyPadStringArray(padId, "chat");
+          _destroyPadStringArray(padId, "authors");
+          _removePadMetaData(padId);
+          _removePadAPool(padId);
           sqlobj.deleteRows("PAD_SQLMETA", { id: padId });
-	  meta = null;
-	},
-	writeToDB: function() {
+          meta = null;
+        },
+        writeToDB: function() {
           var meta2 = {};
           for(var k in meta) meta2[k] = meta[k];
           delete meta2.status;
-	  sqlbase.putJSON("PAD_META", padId, meta2);
+          sqlbase.putJSON("PAD_META", padId, meta2);
 
-	  _getPadStringArray(padId, "revs").writeToDB();
-	  _getPadStringArray(padId, "revs10").writeToDB();
-	  _getPadStringArray(padId, "revs100").writeToDB();
-	  _getPadStringArray(padId, "revs1000").writeToDB();
-	  _getPadStringArray(padId, "revmeta").writeToDB();
-	  _getPadStringArray(padId, "chat").writeToDB();
-	  _getPadStringArray(padId, "authors").writeToDB();
-	  sqlbase.putJSON("PAD_APOOL", padId, pad.pool().toJsonable());
+          _getPadStringArray(padId, "revs").writeToDB();
+          _getPadStringArray(padId, "revs10").writeToDB();
+          _getPadStringArray(padId, "revs100").writeToDB();
+          _getPadStringArray(padId, "revs1000").writeToDB();
+          _getPadStringArray(padId, "revmeta").writeToDB();
+          _getPadStringArray(padId, "chat").writeToDB();
+          _getPadStringArray(padId, "authors").writeToDB();
+          sqlbase.putJSON("PAD_APOOL", padId, pad.pool().toJsonable());
 
           var props = { headRev: meta.head, lastWriteTime: new Date() };
           _writePadSqlMeta(padId, props);
-	},
-	pool: function() {
-	  return _getPadAPool(padId);
-	},
-	getHeadRevisionNumber: function() { return meta.head; },
-	getRevisionAuthor: function(r) {
-	  var n = _getPadStringArray(padId, "revmeta").getJSONEntry(r).a;
-	  return getAuthorForNum(Number(n));
-	},
-	getRevisionChangeset: function(r) {
-	  return _getPadStringArray(padId, "revs").getEntry(r);
-	},
-	tempObj: function() { return _getPadTemp(padId); },
-	getKeyRevisionNumber: function(r) {
-	  return Math.floor(r / meta.keyRevInterval) * meta.keyRevInterval;
-	},
-	getInternalRevisionAText: function(r) {
+        },
+        pool: function() {
+          return _getPadAPool(padId);
+        },
+        getHeadRevisionNumber: function() { return meta.head; },
+        getRevisionAuthor: function(r) {
+          var n = _getPadStringArray(padId, "revmeta").getJSONEntry(r).a;
+          return getAuthorForNum(Number(n));
+        },
+        getRevisionChangeset: function(r) {
+          return _getPadStringArray(padId, "revs").getEntry(r);
+        },
+        tempObj: function() { return _getPadTemp(padId); },
+        getKeyRevisionNumber: function(r) {
+          return Math.floor(r / meta.keyRevInterval) * meta.keyRevInterval;
+        },
+        getInternalRevisionAText: function(r) {
           var cacheKey = "atext/C/"+r+"/"+padId;
           var modelCache = _getModelCache();
-          var cachedValue = modelCache.get(cacheKey);
+          var cachedValue = modelCache[cacheKey];
           if (cachedValue) {
-            modelCache.touch(cacheKey);
-            //java.lang.System.out.println("HIT! "+cacheKey);
             return Changeset.cloneAText(cachedValue);
           }
-          //java.lang.System.out.println("MISS! "+cacheKey);
 
-	  var revs = _getPadStringArray(padId, "revs");
-	  var keyRev = pad.getKeyRevisionNumber(r);
-	  var revmeta = _getPadStringArray(padId, "revmeta");
-	  var atext = revmeta.getJSONEntry(keyRev).atext;
-	  var curRev = keyRev;
-	  var targetRev = r;
-	  var apool = pad.pool();
-	  while (curRev < targetRev) {
-	    curRev++;
-	    var cs = pad.getRevisionChangeset(curRev);
-	    atext = Changeset.applyToAText(cs, atext, apool);
-	  }
-          modelCache.put(cacheKey, Changeset.cloneAText(atext));
-	  return atext;
-	},
-	getInternalRevisionText: function(r, optInfoObj) {
-	  var atext = pad.getInternalRevisionAText(r);
-	  var text = atext.text;
-	  if (optInfoObj) {
-	    if (text.slice(-1) != "\n") {
-	      optInfoObj.badLastChar = text.slice(-1);
-	    }
-	  }
-	  return text;
-	},
-	getRevisionText: function(r, optInfoObj) {
-	  var internalText = pad.getInternalRevisionText(r, optInfoObj);
-	  return internalText.slice(0, -1);
-	},
-	atext: function() { return Changeset.cloneAText(getCurrentAText()); },
-	text: function() { return pad.atext().text; },
-	getRevisionDate: function(r) {
-	  var revmeta = _getPadStringArray(padId, "revmeta");
-	  return new Date(revmeta.getJSONEntry(r).t);
-	},
-	// note: calls like appendRevision will NOT notify clients of the change!
-	// you must go through collab_server.
-	// Also, be sure to run cleanText() on any text to strip out carriage returns
-	// and other stuff.
-	appendRevision: function(theChangeset, author, optDatestamp) {
-	  addRevision(theChangeset, author || '', optDatestamp);
-	},
-	appendChatMessage: function(obj) {
-	  var index = meta.numChatMessages;
-	  meta.numChatMessages++;
-	  var chat = _getPadStringArray(padId, "chat");
-	  chat.setJSONEntry(index, obj);
-	},
-	getNumChatMessages: function() {
-	  return meta.numChatMessages;
-	},
-	getChatMessage: function(i) {
-	  var chat = _getPadStringArray(padId, "chat");
-	  return chat.getJSONEntry(i);
-	},
+          var revs = _getPadStringArray(padId, "revs");
+          var keyRev = pad.getKeyRevisionNumber(r);
+          var revmeta = _getPadStringArray(padId, "revmeta");
+          var atext = revmeta.getJSONEntry(keyRev).atext;
+          var curRev = keyRev;
+          var targetRev = r;
+          var apool = pad.pool();
+          while (curRev < targetRev) {
+            curRev++;
+            var cs = pad.getRevisionChangeset(curRev);
+            atext = Changeset.applyToAText(cs, atext, apool);
+          }
+          modelCache[cacheKey] = Changeset.cloneAText(atext);
+          return atext;
+        },
+        getInternalRevisionText: function(r, optInfoObj) {
+          var atext = pad.getInternalRevisionAText(r);
+          var text = atext.text;
+          if (optInfoObj) {
+            if (text.slice(-1) != "\n") {
+              optInfoObj.badLastChar = text.slice(-1);
+            }
+          }
+          return text;
+        },
+        getRevisionText: function(r, optInfoObj) {
+          var internalText = pad.getInternalRevisionText(r, optInfoObj);
+          return internalText.slice(0, -1);
+        },
+        atext: function() { return Changeset.cloneAText(getCurrentAText()); },
+        text: function() { return pad.atext().text; },
+        getRevisionDate: function(r) {
+          var revmeta = _getPadStringArray(padId, "revmeta");
+          return new Date(revmeta.getJSONEntry(r).t);
+        },
+        // note: calls like appendRevision will NOT notify clients of the change!
+        // you must go through collab_server.
+        // Also, be sure to run cleanText() on any text to strip out carriage returns
+        // and other stuff.
+        appendRevision: function(theChangeset, author, optDatestamp) {
+          addRevision(theChangeset, author || '', optDatestamp);
+        },
+        appendChatMessage: function(obj) {
+          var index = meta.numChatMessages;
+          meta.numChatMessages++;
+          var chat = _getPadStringArray(padId, "chat");
+          chat.setJSONEntry(index, obj);
+        },
+        getNumChatMessages: function() {
+          return meta.numChatMessages;
+        },
+        getChatMessage: function(i) {
+          var chat = _getPadStringArray(padId, "chat");
+          return chat.getJSONEntry(i);
+        },
         getPadOptionsObj: function() {
           var data = pad.getDataRoot();
           if (! data.padOptions) {
@@ -369,46 +370,46 @@ function accessPadGlobal(padId, padFunc, rwMode) {
         setGuestPolicy: function(policy) {
           pad.getPadOptionsObj().guestPolicy = policy;
         },
-	getDataRoot: function() {
-	  var dataRoot = meta.dataRoot;
-	  if (! dataRoot) {
-	    dataRoot = {};
-	    meta.dataRoot = dataRoot;
-	  }
-	  return dataRoot;
-	},
-	// returns an object, changes to which are not reflected
-	// in the DB;  use setAuthorData for mutation
-	getAuthorData: function(author) {
-	  var authors = _getPadStringArray(padId, "authors");
-	  var n = getNumForAuthor(author, true);
+        getDataRoot: function() {
+          var dataRoot = meta.dataRoot;
+          if (! dataRoot) {
+            dataRoot = {};
+            meta.dataRoot = dataRoot;
+          }
+          return dataRoot;
+        },
+        // returns an object, changes to which are not reflected
+        // in the DB;  use setAuthorData for mutation
+        getAuthorData: function(author) {
+          var authors = _getPadStringArray(padId, "authors");
+          var n = getNumForAuthor(author, true);
           if (n < 0) {
             return null;
           }
           else {
-	    return authors.getJSONEntry(n);
+            return authors.getJSONEntry(n);
           }
-	},
-	setAuthorData: function(author, data) {
-	  var authors = _getPadStringArray(padId, "authors");
-	  var n = getNumForAuthor(author);
-	  authors.setJSONEntry(n, data);
-	},
-	adoptChangesetAttribs: function(cs, oldPool) {
-	  return Changeset.moveOpsToNewPool(cs, oldPool, pad.pool());
-	},
-	eachATextAuthor: function(atext, func) {
-	  var seenNums = {};
-	  Changeset.eachAttribNumber(atext.attribs, function(n) {
-	    if (! seenNums[n]) {
-	      seenNums[n] = true;
-	      var author = getAuthorForNum(n);
-	      if (author) {
-		func(author, n);
-	      }
-	    }
-	  });
-	},
+        },
+        setAuthorData: function(author, data) {
+          var authors = _getPadStringArray(padId, "authors");
+          var n = getNumForAuthor(author);
+          authors.setJSONEntry(n, data);
+        },
+        adoptChangesetAttribs: function(cs, oldPool) {
+          return Changeset.moveOpsToNewPool(cs, oldPool, pad.pool());
+        },
+        eachATextAuthor: function(atext, func) {
+          var seenNums = {};
+          Changeset.eachAttribNumber(atext.attribs, function(n) {
+            if (! seenNums[n]) {
+              seenNums[n] = true;
+              var author = getAuthorForNum(n);
+              if (author) {
+                func(author, n);
+              }
+            }
+          });
+        },
         getCoarseChangeset: function(start, numChangesets) {
           updateCoarseChangesets();
 
@@ -446,7 +447,7 @@ function accessPadGlobal(padId, padFunc, rwMode) {
         setSupportsTimeSlider: function(v) {
           meta.supportsTimeSlider = v;
         },
-	get _meta() { return meta; }
+        get _meta() { return meta; }
       };
 
       try {
@@ -455,33 +456,37 @@ function accessPadGlobal(padId, padFunc, rwMode) {
         return padFunc(pad);
       }
       finally {
-	padutils.clearCurrentPad();
-        delete appjet.requestCache.padsAccessing[padId];
-	if (meta) {
-	  if (mode != "r") {
-	    meta.status.dirty = true;
-	  }
-	  if (meta.status.dirty) {
-	    dbwriter.notifyPadDirty(padId);
-	  }
-	}
+        try {
+          if (meta) {
+            if (mode != "r") {
+              meta.status.dirty = true;
+            }
+            if (meta.status.dirty) {
+              dbwriter.writePadNow(pad);
+            }
+          }          
+        } finally {
+          padutils.clearCurrentPad();
+          delete appjet.requestCache.padsAccessing[padId];
+        }
       }
     });
   });
 }
 
-/**
- * Call an arbitrary function with no arguments inside an exclusive
- * lock on a padId, and return the result.
- */
-function doWithPadLock(padId, func) {
-  var lockName = "document/"+padId;
-  return sync.doWithStringLock(lockName, func);
+function _padParentKey(padId) {
+  return _getPadSqlMeta
 }
 
-function isPadLockHeld(padId) {
-  var lockName = "document/"+padId;
-  return GlobalSynchronizer.isHeld(lockName);
+/**
+ * Call an arbitrary function with no arguments while holding
+ * a transaction for a padId, and return the result.
+ * Do not attempt to lock more than one pad at a time.
+ */
+function doWithPadLock(padId, func) {
+  return datastore.inTransaction(sqlbase.getPadParentKey(padId), func);
+  // var lockName = "document/"+padId;
+  // return sync.doWithStringLock(lockName, func);
 }
 
 /**
@@ -490,7 +495,7 @@ function isPadLockHeld(padId) {
  * exist at all (does NOT create it).  Requires pad lock.
  */
 function _getPadMetaData(padId) {
-  var padMeta = appjet.cache.pads.meta.get(padId);
+  var padMeta = appjet.requestCache.pads.meta.get(padId);
   if (! padMeta) {
     // not in cache
     padMeta = sqlbase.getJSON("PAD_META", padId);
@@ -499,7 +504,7 @@ function _getPadMetaData(padId) {
       padMeta = null;
     }
     else {
-      appjet.cache.pads.meta.put(padId, padMeta);
+      appjet.requestCache.pads.meta.put(padId, padMeta);
     }
   }
   return padMeta;
@@ -510,7 +515,7 @@ function _getPadMetaData(padId) {
  * a pad for the first time.  Requires pad lock.
  */
 function _insertPadMetaData(padId, obj) {
-  appjet.cache.pads.meta.put(padId, obj);
+  appjet.requestCache.pads.meta.put(padId, obj);
 }
 
 /**
@@ -518,12 +523,12 @@ function _insertPadMetaData(padId, obj) {
  * Used for the rare case of deleting a pad.
  */
 function _removePadMetaData(padId) {
-  appjet.cache.pads.meta.remove(padId);
+  appjet.requestCache.pads.meta.remove(padId);
   sqlbase.deleteJSON("PAD_META", padId);
 }
 
 function _getPadAPool(padId) {
-  var padAPool = appjet.cache.pads.apool.get(padId);
+  var padAPool = appjet.requestCache.pads.apool.get(padId);
   if (! padAPool) {
     // not in cache
     padAPool = new AttribPool();
@@ -532,7 +537,7 @@ function _getPadAPool(padId) {
       // in SQL
       padAPool.fromJsonable(padAPoolJson);
     }
-    appjet.cache.pads.apool.put(padId, padAPool);
+    appjet.requestCache.pads.apool.put(padId, padAPool);
   }
   return padAPool;
 }
@@ -542,7 +547,7 @@ function _getPadAPool(padId) {
  * Used for the rare case of deleting a pad.
  */
 function _removePadAPool(padId) {
-  appjet.cache.pads.apool.remove(padId);
+  appjet.requestCache.pads.apool.remove(padId);
   sqlbase.deleteJSON("PAD_APOOL", padId);
 }
 
@@ -552,10 +557,10 @@ function _removePadAPool(padId) {
  * if necessary.  Requires pad lock.
  */
 function _getPadTemp(padId) {
-  var padTemp = appjet.cache.pads.temp.get(padId);
+  var padTemp = appjet.requestCache.pads.temp.get(padId);
   if (! padTemp) {
     padTemp = {};
-    appjet.cache.pads.temp.put(padId, padTemp);
+    appjet.requestCache.pads.temp.put(padId, padTemp);
   }
   return padTemp;
 }
@@ -566,14 +571,14 @@ function _getPadTemp(padId) {
  * all within a pad lock.
  */
 function _getPadStringArray(padId, name) {
-  var padFoo = appjet.cache.pads[name].get(padId);
+  var padFoo = appjet.requestCache.pads[name].get(padId);
   if (! padFoo) {
     padFoo = {};
     // writes go into writeCache, which is authoritative for reads;
     // reads cause pages to be read into readCache
     padFoo.readCache = {};
     padFoo.writeCache = {};
-    appjet.cache.pads[name].put(padId, padFoo);
+    appjet.requestCache.pads[name].put(padId, padFoo);
   }
   var tableName = "PAD_"+name.toUpperCase();
   var self = {
@@ -616,7 +621,7 @@ function _getPadStringArray(padId, name) {
  * called within a pad lock.
  */
 function _destroyPadStringArray(padId, name) {
-  appjet.cache.pads[name].remove(padId);
+  appjet.requestCache.pads[name].remove(padId);
   var tableName = "PAD_"+name.toUpperCase();
   sqlbase.clearStringArray(tableName, padId);
 }
@@ -637,14 +642,14 @@ function _writePadSqlMeta(padId, updates) {
 function removeFromMemory(pad) {
   // safe to call if all data is written to SQL, otherwise will lose data;
   var padId = pad.getId();
-  appjet.cache.pads.meta.remove(padId);
-  appjet.cache.pads.revs.remove(padId);
-  appjet.cache.pads.revs10.remove(padId);
-  appjet.cache.pads.revs100.remove(padId);
-  appjet.cache.pads.revs1000.remove(padId);
-  appjet.cache.pads.chat.remove(padId);
-  appjet.cache.pads.revmeta.remove(padId);
-  appjet.cache.pads.apool.remove(padId);
+  appjet.requestCache.pads.meta.remove(padId);
+  appjet.requestCache.pads.revs.remove(padId);
+  appjet.requestCache.pads.revs10.remove(padId);
+  appjet.requestCache.pads.revs100.remove(padId);
+  appjet.requestCache.pads.revs1000.remove(padId);
+  appjet.requestCache.pads.chat.remove(padId);
+  appjet.requestCache.pads.revmeta.remove(padId);
+  appjet.requestCache.pads.apool.remove(padId);
   collab_server.removeFromMemory(pad);
 }
 

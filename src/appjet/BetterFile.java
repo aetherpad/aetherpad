@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.appjet.common.util;
+package appjet;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

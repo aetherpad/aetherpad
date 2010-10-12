@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.appjet.oui;
+package appjet;
 
 import org.mozilla.javascript.{Context,Scriptable,ScriptableObject};
 import org.json.{JSONStringer,JSONObject,JSONArray};
@@ -125,11 +125,11 @@ class FastJSONParser(val ctx:ExecutionContext) {
   }
 
   private def newObj(): Scriptable = {
-    Context.getCurrentContext().newObject(ctx.runner.globalScope);
+    Context.getCurrentContext().newObject(ctx.scope.parentRhinoScope);
   }
 
   private def newArray(): Scriptable = {
-    Context.getCurrentContext().newArray(ctx.runner.globalScope, 0);
+    Context.getCurrentContext().newArray(ctx.scope.parentRhinoScope, 0);
   }
   
   private def jsonToRhino(json: Object): Object = {

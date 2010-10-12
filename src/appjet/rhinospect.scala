@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.appjet.common.rhino;
+package appjet;
 
 import java.lang.reflect.Modifier;
 

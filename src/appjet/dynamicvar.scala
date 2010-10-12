@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.appjet.oui;
+package appjet;
 
 class NoninheritedDynamicVariable[T](init: T) {
   private val tl = new ThreadLocal[T] {
