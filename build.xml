@@ -24,8 +24,17 @@
     <delete dir="war/WEB-INF/lib"/>
   </target>
 
-  <target name="copyjars"
-      description="Copies the App Engine JARs to the WAR.">
+  <target name="init">
+    <taskdef resource="scala/tools/ant/antlib.xml">
+      <classpath>
+        <pathelement location="${scala.home}/lib/scala-compiler.jar"   />
+        <pathelement location="${scala.home}/lib/scala-library.jar"   />
+      </classpath>
+    </taskdef>
+  </target>
+
+  <target name="copyjardeps"
+      description="Copies all the JAR dependencies into the WAR.">
     <copy
         file="${scala.home}/lib/scala-library.jar"
         todir="war/WEB-INF/lib"
@@ -39,8 +48,8 @@
     </copy>
   </target>
 
-  <target name="copystatic"
-      description="Copies the static files out of WEB-INF into the WAR.">
+  <target name="copystaticjs"
+      description="Copies the static javascript files out of WEB-INF into the WAR.">
     <copy todir="war/static/js">
       <fileset dir="war/WEB-INF/ssjs/modules/static/js">
         <include name="**/*.js" />
@@ -48,34 +57,28 @@
     </copy>
   </target>
 
-  <target name="init">
-    <taskdef resource="scala/tools/ant/antlib.xml">
-      <classpath>
-        <pathelement location="${scala.home}/lib/scala-compiler.jar"   />
-        <pathelement location="${scala.home}/lib/scala-library.jar"   />
-      </classpath>
-    </taskdef>
-  </target>
-
-  <target name="compile" depends="copyjars,copystatic,init"
+  <target name="compile" depends="copyjardeps,copystaticjs,init"
       description="Compiles Java source and copies other source files to the WAR.">
+
+    <!-- create teh classes/ dir where we will copy things. -->
     <mkdir dir="war/WEB-INF/classes" />
+
+    <!-- copy logging.properties -->
     <copy todir="war/WEB-INF/classes">
       <fileset dir="src">
-        <exclude name="**/*.java" />
-        <exclude name="**/*.scala" />
+        <include name="logging.properties" />
       </fileset>
     </copy>
     <javac
-        srcdir="src"
-        destdir="war/WEB-INF/classes"
-        classpathref="project.classpath"
-        debug="on" />
+      srcdir="src/java"
+      destdir="war/WEB-INF/classes"
+      classpathref="project.classpath"
+      debug="on" />
     <fsc
-        srcdir="src"
-        destdir="war/WEB-INF/classes"
-        classpathref="project.classpath"
-        scalacdebugging="true" />
+      srcdir="src/scala"
+      destdir="war/WEB-INF/classes"
+      classpathref="project.classpath"
+      scalacdebugging="true" />
   </target>
 
   <target name="datanucleusenhance" depends="compile"
