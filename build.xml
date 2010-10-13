@@ -1,11 +1,11 @@
 <!-- Required environment variables:
-      aetherpad_gae_sdk
-      aetherpad_scala_home
+      GAE_HOME
+      SCALA_HOME
 -->
 <project>
   <property environment="env"/>
-  <property name="sdk.dir" value="${env.aetherpad_gae_sdk}" />
-  <property name="scala.home" value="${env.aetherpad_scala_home}" />
+  <property name="sdk.dir" value="${env.GAE_HOME}" />
+  <property name="scala.home" value="${env.SCALA_HOME}" />
 
   <import file="${sdk.dir}/config/user/ant-macros.xml" />
 
