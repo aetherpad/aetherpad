@@ -1,6 +1,11 @@
+<!-- Required environment variables:
+      aetherpad_gae_sdk
+      aetherpad_scala_home
+-->
 <project>
-  <property name="sdk.dir" location="/usr/local/sdk/appengine-java-sdk-1.3.7" />
-  <property name="scala.home" location="/usr/local/scala" />
+  <property environment="env"/>
+  <property name="sdk.dir" value="${env.aetherpad_gae_sdk}" />
+  <property name="scala.home" value="${env.aetherpad_scala_home}" />
 
   <import file="${sdk.dir}/config/user/ant-macros.xml" />
 
