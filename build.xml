@@ -19,6 +19,11 @@
     </fileset>
   </path>
 
+  <target name="clean">
+    <delete dir="war/WEB-INF/classes"/>
+    <delete dir="war/WEB-INF/lib"/>
+  </target>
+
   <target name="copyjars"
       description="Copies the App Engine JARs to the WAR.">
     <copy
