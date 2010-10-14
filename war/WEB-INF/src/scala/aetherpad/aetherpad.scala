@@ -3,7 +3,7 @@ package aetherpad;
 import java.io.IOException;
 import javax.servlet.http._;
 
-import appjet.{BodyLock, Executable, Libraries, ScopeManager, ExecutionContext, ResponseWrapper, ExecutionContextUtils};
+import appjet.{BodyLock, Executable, Libraries, ScopeManager, ExecutionContext, ResponseWrapper, ExecutionContextUtils, ExceptionUtils};
 
 class AppJetEngineServlet extends HttpServlet {
   override def doGet(req: HttpServletRequest, res: HttpServletResponse) {
@@ -24,6 +24,12 @@ class AppJetEngineServlet extends HttpServlet {
         }      
       } catch {
         case appjet.AppGeneratedStopException => { }
+        case e: appjet.JSRuntimeException => {
+          ec.response.overwriteOutputWithError(500, ExceptionUtils.javascriptStackTrace(e));
+        }
+        case e: Throwable => {
+          ec.response.overwriteOutputWithError(500, ExceptionUtils.javaStackTrace(e));
+        }
       } finally {
         ec.response.print();      
       }

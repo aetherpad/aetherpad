@@ -42,7 +42,7 @@ class ResponseWrapper(val res: HttpServletResponse) {
     }
   }
 
-  private def overwriteOutputWithError(code: Int, errorStr: String) {
+  def overwriteOutputWithError(code: Int, errorStr: String) {
     statusCode = code;
     outputStrings.clear();
     outputStrings += errorStr;
