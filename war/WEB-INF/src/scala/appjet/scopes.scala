@@ -10,9 +10,9 @@ object ScopeManager {
   var cachedScope: Option[Scope] = None;
 
   // these had better exist!
-  def preamble = Libraries.get("WEB-INF/ssjs/preamble.js");
-  def main = Libraries.get("WEB-INF/ssjs/main.js");
-  def postamble = Libraries.get("WEB-INF/ssjs/postamble.js");
+  def preamble = Libraries.get("WEB-INF/src/ssjs/preamble.js");
+  def main = Libraries.get("WEB-INF/src/ssjs/main.js");
+  def postamble = Libraries.get("WEB-INF/src/ssjs/postamble.js");
   
   def withScope(block: Scope => Unit) = synchronized {
     try {

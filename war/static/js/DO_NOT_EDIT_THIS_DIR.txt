@@ -1,3 +1,0 @@
-This directory is copied from war/static/js.
-
-DO NOT MODIFY THE FILES IN THIS DIRECTORY

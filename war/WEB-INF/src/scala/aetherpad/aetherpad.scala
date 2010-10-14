@@ -13,7 +13,7 @@ class AppJetEngineServlet extends HttpServlet {
     execute(req, res);
   }
   
-  val requestLib = Libraries.get("WEB-INF/ssjs/onrequest.js")
+  val requestLib = Libraries.get("WEB-INF/src/ssjs/onrequest.js")
   
   def execute(req: HttpServletRequest, res: HttpServletResponse) {
     ScopeManager.withScope { scope =>

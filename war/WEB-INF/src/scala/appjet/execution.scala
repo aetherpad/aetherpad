@@ -146,7 +146,7 @@ object AppGeneratedStopException extends JSRuntimeException("User-generated stop
 object rhinosupport {
   def runModuleInNewScope(moduleName: String): Any = {
     val ec = ExecutionContextUtils.currentContext;
-    val lib = Libraries.get("WEB-INF/ssjs/modules/"+moduleName+".js");
+    val lib = Libraries.get("WEB-INF/src/ssjs/modules/"+moduleName+".js");
     if (lib.executable.isDefined) {
       val newScope = BodyLock.subScope(ec.scope.parentRhinoScope);
       try {

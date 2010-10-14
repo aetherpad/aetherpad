@@ -6,6 +6,7 @@
   <property environment="env"/>
   <property name="sdk.dir" value="${env.GAE_HOME}" />
   <property name="scala.home" value="${env.SCALA_HOME}" />
+  <property name="src" value="war/WEB-INF/src" />
 
   <import file="${sdk.dir}/config/user/ant-macros.xml" />
 
@@ -42,40 +43,25 @@
       <fileset dir="${sdk.dir}/lib/user">
         <include name="**/*.jar" />
       </fileset>
-      <fileset dir="lib">
+      <fileset dir="${basedir}/lib">
         <include name="**/*.jar" />
       </fileset>
     </copy>
   </target>
 
-  <target name="copystaticjs"
-      description="Copies the static javascript files out of WEB-INF into the WAR.">
-    <copy todir="war/static/js">
-      <fileset dir="war/WEB-INF/ssjs/modules/static/js">
-        <include name="**/*.js" />
-      </fileset>
-    </copy>
-  </target>
-
-  <target name="compile" depends="copyjardeps,copystaticjs,init"
+  <target name="compile" depends="copyjardeps,init"
       description="Compiles Java source and copies other source files to the WAR.">
 
     <!-- create teh classes/ dir where we will copy things. -->
     <mkdir dir="war/WEB-INF/classes" />
 
-    <!-- copy logging.properties -->
-    <copy todir="war/WEB-INF/classes">
-      <fileset dir="src">
-        <include name="logging.properties" />
-      </fileset>
-    </copy>
     <javac
-      srcdir="src/java"
+      srcdir="${src}/java"
       destdir="war/WEB-INF/classes"
       classpathref="project.classpath"
       debug="on" />
     <fsc
-      srcdir="src/scala"
+      srcdir="${src}/scala"
       destdir="war/WEB-INF/classes"
       classpathref="project.classpath"
       scalacdebugging="true" />
