@@ -35,7 +35,7 @@ import("etherpad.sessions");
 import("etherpad.store.checkout");
 import("etherpad.utils.*");
 
-import("static.js.billing_shared.{billing=>billingJS}");
+// import("static.js.billing_shared.{billing=>billingJS}");
 
 var billingButtonName = "Confirm"
 

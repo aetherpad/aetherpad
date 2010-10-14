@@ -26,7 +26,7 @@ import("etherpad.globals.*");
 import("etherpad.licensing");
 import("etherpad.utils.*");
 
-import("static.js.billing_shared.{billing=>billingJS}");
+// import("static.js.billing_shared.{billing=>billingJS}");
 
 function dollars(x, nocommas) {
   if (! x) { return "0.00"; }

@@ -34,7 +34,7 @@ import("etherpad.store.checkout");
 import("etherpad.store.eepnet_checkout");
 import("etherpad.utils.*");
 
-import("static.js.billing_shared.{billing=>billingJS}");
+// import("static.js.billing_shared.{billing=>billingJS}");
 
 jimport("java.lang.System.out.println");
 
