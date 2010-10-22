@@ -22,7 +22,6 @@ import("sqlbase.sqlobj");
 import("etherpad.globals.*");
 import("etherpad.utils.*");
 import("etherpad.log");
-import("etherpad.pne.pne_utils");
 
 jimport("java.lang.System.out.println");
 
@@ -44,11 +43,7 @@ var migrations = [
   "m0010_pad_sqlmeta",
   "m0011_pro_users_temppass",
   "m0012_pro_users_auto_signin",
-  "m0013_pne_padv2_upgrade",
-  "m0014_pne_globalpadids",
   "m0015_padmeta_passwords",
-  "m0016_pne_tracking_data",
-  "m0017_pne_tracking_data_v2",
   "m0018_eepnet_checkout_tables",
   "m0019_padmeta_deleted",
   "m0020_padmeta_archived",
@@ -97,9 +92,7 @@ function onStartup() {
     });
   }
 
-  if (pne_utils.isPNE()) { pne_utils.checkDbVersionUpgrade(); }
   runMigrations();
-  if (pne_utils.isPNE()) { pne_utils.saveDbVersion(); }
 }
 
 function _migrationName(m) {

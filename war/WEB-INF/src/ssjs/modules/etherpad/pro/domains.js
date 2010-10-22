@@ -20,7 +20,6 @@ import("jsutils.*");
 import("sqlbase.sqlobj");
 
 import("etherpad.pro.pro_utils");
-import("etherpad.pne.pne_utils");
 
 jimport("java.lang.System.out.println");
 

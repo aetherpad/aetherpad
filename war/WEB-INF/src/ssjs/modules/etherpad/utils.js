@@ -29,7 +29,6 @@ import("etherpad.helpers");
 import("etherpad.collab.collab_server");
 import("etherpad.pad.model");
 import("etherpad.pro.domains");
-import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_utils");
 import("etherpad.pro.pro_config");
 import("etherpad.pro.pro_accounts");
@@ -165,7 +164,6 @@ function _renderEtherpadDotComHeader(data) {
   data.UL = UL;
   data.LI = LI;
   data.A = A;
-  data.isPNE = isPrivateNetworkEdition();
   return renderTemplateAsString("framed/framedheader.ejs", data);
 }
 
@@ -178,10 +176,7 @@ function _renderProHeader(data) {
   if (!data) { data = {}; }
   data.navSelection = (data.navSelection || appjet.requestCache.proTopNavSelection || '');
   data.proDomainOrgName = pro_config.getConfig().siteName;
-  data.isPNE = isPrivateNetworkEdition();
   data.account = getSessionProAccount();
-  data.validLicense = pne_utils.isServerLicensed();
-  data.pneTrackerHtml = pne_utils.pneTrackerHtml();
   data.isAnEtherpadAdmin = sessions.isAnEtherpadAdmin();
   data.fullSuperdomain = pro_utils.getFullSuperdomainHost();
   return renderTemplateAsString("framed/framedheader-pro.ejs", data);
@@ -301,10 +296,6 @@ function extractGoogleQuery(ref) {
 
 function isTestEmail(x) {
   return (x.indexOf("+appjetseleniumtest+") >= 0);
-}
-
-function isPrivateNetworkEdition() {
-  return pne_utils.isPNE();
 }
 
 function isProDomainRequest() {

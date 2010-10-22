@@ -22,7 +22,6 @@ import("cache_utils.syncedWithCache");
 import("etherpad.helpers");
 import("etherpad.utils.*");
 import("etherpad.sessions.getSession");
-import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_pad_db");
 import("etherpad.pro.domains");
 import("etherpad.pro.pro_accounts");
@@ -69,8 +68,6 @@ function render_main() {
 
   renderFramed('pro/pro_home.ejs', {
     account: getSessionProAccount(),
-    isPNE: pne_utils.isPNE(),
-    pneVersion: pne_utils.getVersionString(),
     livePads: livePads,
     recentPads: recentPads,
     renderRecentPads: renderRecentPads,

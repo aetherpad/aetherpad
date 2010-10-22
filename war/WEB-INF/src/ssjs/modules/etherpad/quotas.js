@@ -16,9 +16,6 @@
 
 import("stringutils");
 import("etherpad.utils.*");
-import("etherpad.pne.pne_utils");
-
-// TODO: hook into PNE?
 
 function getMaxSimultaneousPadEditors(globalPadId) {
   if (isProDomainRequest()) {

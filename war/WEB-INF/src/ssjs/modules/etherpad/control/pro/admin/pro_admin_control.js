@@ -29,7 +29,6 @@ import("etherpad.admin.shell");
 import("etherpad.sessions");
 import("etherpad.sessions.getSession");
 
-import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_accounts");
 import("etherpad.utils.*");
 
@@ -38,22 +37,16 @@ import("etherpad.utils.*");
 var _pathPrefix = '/ep/admin/';
 
 var _PRO = 1;
-var _PNE_ONLY = 2;
 var _ONDEMAND_ONLY = 3;
 
 function _getLeftnavItems() {
   var nav = [
     _PRO, [
       [_PRO, null, "Admin"],
-      [_PNE_ONLY, "pne-dashboard", "Server Dashboard"],
-      [_PNE_ONLY, "pne-license-manager/", "Manage License"],
       [_PRO, "account-manager/", "Manage Accounts"],
       [_PRO, "recover-padtext", "Recover Pad Text"],
       [_PRO, null, "Configuration"],
-      [_PRO, [[_PNE_ONLY, "pne-config", "Private Server Configuration"],
-              [_PRO, "pro-config", "Application Configuration"]]],
-      [_PNE_ONLY, null, "Documentation"],
-      [_PNE_ONLY, "/ep/pne-manual/", "Administrator's Manual"]
+      [_PRO, [_PRO, "pro-config", "Application Configuration"]]
     ]
   ];
   return nav;
@@ -61,13 +54,6 @@ function _getLeftnavItems() {
 
 function renderAdminLeftNav() {
   function _make(x) {
-    if ((x[0] == _PNE_ONLY) && !pne_utils.isPNE()) {
-      return null;
-    }
-    if ((x[0] == _ONDEMAND_ONLY) && pne_utils.isPNE()) {
-      return null;
-    }
-
     if (x[1] instanceof Array) {
       return _makelist(x[1]);
     } else {
@@ -121,8 +107,7 @@ function renderAdminPage(p, data) {
   }
   renderFramed('pro/admin/admin-template.ejs', {
     getAdminContent: getAdminContent,
-    renderAdminLeftNav: renderAdminLeftNav,
-    validLicense: pne_utils.isServerLicensed(),
+    renderAdminLeftNav: renderAdminLeftNav
   });
 }
 
@@ -149,15 +134,6 @@ function render_main() {
   response.redirect('/ep/admin/account-manager/')
 }
 
-function render_pne_dashboard() {
-  renderAdminPage('pne-dashboard', {
-    renderUptime: admincontrol.renderServerUptime,
-    renderResponseCodes: admincontrol.renderResponseCodes,
-    renderPadConnections: admincontrol.renderPadConnections,
-    renderTransportStats: admincontrol.renderCometStats
-  });
-}
-
 var _documentedServerOptions = [
   'listen',
   'listenSecure',
@@ -177,43 +153,6 @@ var _documentedServerOptions = [
   'etherpad.licenseKey',
   'verbose'
 ];
-
-function render_pne_config_get() {
-  renderAdminPage('pne-config', {
-    propKeys: _documentedServerOptions,
-    appjetConfig: appjet.config
-  });
-}
-
-function render_pne_advanced_get() {
-  response.redirect("/ep/admin/shell");
-}
-
-function render_shell_get() {
-  if (!(pne_utils.isPNE() || sessions.isAnEtherpadAdmin())) {
-    return false;
-  }
-  appjet.requestCache.proTopNavSelection = 'admin';
-  renderAdminPage('pne-shell', {
-    oldCmd: getSession().pneAdminShellCmd,
-    result: getSession().pneAdminShellResult,
-    elapsedMs: getSession().pneAdminShellElapsed
-  });
-  delete getSession().pneAdminShellResult;
-  delete getSession().pneAdminShellElapsed;
-}
-
-function render_shell_post() {
-  if (!(pne_utils.isPNE() || sessions.isAnEtherpadAdmin())) {
-    return false;
-  }
-  var cmd = request.params.cmd;
-  var start = +(new Date);
-  getSession().pneAdminShellCmd = cmd;
-  getSession().pneAdminShellResult = shell.getResult(cmd);
-  getSession().pneAdminShellElapsed = +(new Date) - start;
-  response.redirect(request.path);
-}
 
 function render_recover_padtext_get() {
   function getNumRevisions(localPadId) {

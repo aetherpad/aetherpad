@@ -39,7 +39,6 @@ import("etherpad.pro.pro_utils");
 import("etherpad.pro.pro_accounts.getSessionProAccount");
 import("etherpad.pro.domains");
 import("etherpad.pro.pro_config");
-import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_quotas");
 
 import("etherpad.pad.revisions");
