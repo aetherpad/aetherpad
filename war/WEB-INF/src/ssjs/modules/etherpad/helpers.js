@@ -260,17 +260,3 @@ function clearFloats() {
   return '<div style="clear: both;"><!-- --></div>';
 }
 
-function rafterBlogUrl() {
-  return '/ep/blog/posts/google-acquires-appjet';
-}
-
-function rafterNote() {
-  return """<div style='border: 1px solid #ccc; background: #fee; padding: 1em; margin: 1em 0;'>
-    <b>Note: </b>We are no longer accepting new accounts. <a href='"""+rafterBlogUrl()+"""'>Read more</a>.
-  </div>""";
-}
-
-function rafterTerminationDate() {
-  return "March 31, 2010";
-}
-

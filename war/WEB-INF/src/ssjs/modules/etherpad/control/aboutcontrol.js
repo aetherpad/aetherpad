@@ -90,10 +90,6 @@ function render_forums() {
   renderFramed("about/forums_body.ejs");
 }
 
-function render_blog() {
-  renderFramed("about/blog_body.ejs");
-}
-
 function render_really_real_time() {
   renderFramed("about/simultaneously.ejs");
 }
