@@ -15,7 +15,6 @@
  */
 
 import("stringutils");
-import("etherpad.licensing");
 import("etherpad.utils.*");
 import("etherpad.pne.pne_utils");
 
@@ -23,11 +22,7 @@ import("etherpad.pne.pne_utils");
 
 function getMaxSimultaneousPadEditors(globalPadId) {
   if (isProDomainRequest()) {
-    if (pne_utils.isPNE()) {
-      return licensing.getMaxUsersPerPad();
-    } else {
-      return 1e6;
-    }
+    return 1e6;
   } else {
     // etherpad.com public pads
     if (globalPadId && stringutils.startsWith(globalPadId, "conf-")) {

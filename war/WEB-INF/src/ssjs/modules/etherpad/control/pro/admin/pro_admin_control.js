@@ -18,7 +18,6 @@ import("stringutils");
 import("funhtml.*");
 import("dispatch.{Dispatcher,DirMatcher,forward}");
 
-import("etherpad.licensing");
 import("etherpad.control.admincontrol");
 import("etherpad.control.pro.admin.license_manager_control");
 import("etherpad.control.pro.admin.account_manager_control");
@@ -155,9 +154,7 @@ function render_pne_dashboard() {
     renderUptime: admincontrol.renderServerUptime,
     renderResponseCodes: admincontrol.renderResponseCodes,
     renderPadConnections: admincontrol.renderPadConnections,
-    renderTransportStats: admincontrol.renderCometStats,
-    todayActiveUsers: licensing.getActiveUserCount(),
-    userQuota: licensing.getActiveUserQuota()
+    renderTransportStats: admincontrol.renderCometStats
   });
 }
 

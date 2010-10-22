@@ -22,7 +22,6 @@ import("cache_utils.syncedWithCache");
 import("etherpad.helpers");
 import("etherpad.utils.*");
 import("etherpad.sessions.getSession");
-import("etherpad.licensing");
 import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_pad_db");
 import("etherpad.pro.domains");
@@ -69,8 +68,6 @@ function render_main() {
   var r = domains.getRequestDomainRecord();
 
   renderFramed('pro/pro_home.ejs', {
-    isEvaluation: licensing.isEvaluation(),
-    evalExpDate: licensing.getLicense().expiresDate,
     account: getSessionProAccount(),
     isPNE: pne_utils.isPNE(),
     pneVersion: pne_utils.getVersionString(),

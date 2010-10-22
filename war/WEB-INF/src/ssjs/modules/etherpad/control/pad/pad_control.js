@@ -27,7 +27,6 @@ import("etherpad.collab.collab_server");
 import("etherpad.debug.dmesg");
 import("etherpad.globals.*");
 import("etherpad.helpers");
-import("etherpad.licensing");
 import("etherpad.quotas");
 import("etherpad.log");
 import("etherpad.log.{logRequest,logException}");
@@ -263,16 +262,6 @@ function _checkPadQuota(pad) {
     renderFramed('pad/padfull_body.ejs',
                   {maxUsersPerPad: maxUsersPerPad, padId: pad.getLocalId()});
     response.stop();
-  }
-
-  if (pne_utils.isPNE()) {
-    if (!licensing.canSessionUserJoin()) {
-      renderFramed('pad/total_users_exceeded.ejs', {
-        userQuota: licensing.getActiveUserQuota(),
-        activeUserWindowHours: licensing.getActiveUserWindowHours()
-      });
-      response.stop();
-    }
   }
 }
 

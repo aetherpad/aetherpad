@@ -28,7 +28,6 @@ import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 
 import("etherpad.globals.*");
 import("etherpad.utils.*");
-import("etherpad.licensing");
 import("etherpad.sessions.getSession");
 import("etherpad.sessions");
 import("etherpad.statistics.statistics");
@@ -196,29 +195,6 @@ function render_dashboard() {
   body.push(A({href: '/ep/admin/'}, html("&laquo; Admin")));
   body.push(H1({style: "border-bottom: 1px solid black;"}, "Dashboard"));
 
-  /*
-  body.push(H2({style: "color: #226; font-size: 1em;"}, "License"));
-  var license = licensing.getLicense();
-  body.push(P(TT("       Licensed To (name): "+license.personName)));
-  body.push(P(TT("       Licensed To (organization): "+license.organizationName)));
-  body.push(P(TT("       Software Edition: "+license.editionName)));
-  var quota = ((license.userQuota > 0) ? license.userQuota : 'unlimited');
-  body.push(P(TT("       User Quota: "+quota)));
-  var expires = (license.expiresDate ? (license.expiresDate.toString()) : 'never');
-  body.push(P(TT("       Expires: "+expires)));
-  */
-
-  /*
-  body.push(H2({style: "color: #226; font-size: 1em;"}, "Active User Quota"));
-
-  var activeUserCount = licensing.getActiveUserCount();
-  var activeUserQuota = licensing.getActiveUserQuota();
-  var activeUserWindowStart = licensing.getActiveUserWindowStart();
-
-  body.push(P(TT("       Since ", B(activeUserWindowStart.toString()), ", ",
-                 "you have used ", B(activeUserCount), " of ", B(activeUserQuota),
-                 " active users.")));
-*/
   body.push(H2({style: "color: #226; font-size: 1em;"}, "Uptime"));
   body.push(P({style: "margin-left: 25px;"}, "Server running for "+renderServerUptime()+"."))
 
@@ -830,90 +806,6 @@ function render_diagnostics() {
   body.push(t);
 
   response.write(HTML(body));
-}
-
-//----------------------------------------------------------------
-
-function render_genlicense_get() {
-
-  var t = TABLE({border: 1});
-  function ti(id, label) {
-    t.push(TR(TD({align: "right"}, LABEL({htmlFor: id}, label+":")),
-              TD(INPUT({id: id, name: id, type: 'text', size: 40}))));
-  }
-
-  ti("name", "Name of Licensee");
-  ti("org", "Name of Organization");
-  ti("userQuota", "User Quota");
-
-  t.push(TR(TD({align: "right"}, LABEL("Software Edtition:")),
-            TD( SELECT({name: "edition"},
-                       OPTION({value: licensing.getEditionId('PRIVATE_NETWORK_EVALUATION')},
-                              "Private Network EVALUATION"),
-                       OPTION({value: licensing.getEditionId('PRIVATE_NETWORK')},
-                              "Private Network")))));
-
-  ti("expdays", "Number of days until expiration\n(leave blank if never expires)");
-
-  t.push(TR(TD({colspan: 2}, INPUT({type: "submit"}))));
-
-  var f = FORM({action: request.path, method: "post"});
-  f.push(t);
-
-  response.write(HTML(BODY(f)));
-}
-
-function render_genlicense_post() {
-  var name = request.params.name;
-  var org = request.params.org;
-  var editionId = +request.params.edition;
-  var editionName = licensing.getEditionName(editionId);
-  var userQuota = +request.params.userQuota;
-
-  var expiresTime = null;
-  if (request.params.expdays) {
-    expiresTime = +(new Date) + 1000*60*60*24*(+request.params.expdays);
-  }
-
-  var licenseKey = licensing.generateNewKey(
-    name,
-    org,
-    expiresTime,
-    editionId,
-    userQuota
-  );
-
-  // verify
-  if (!licensing.isValidKey(licenseKey)) {
-    throw Error("License key I just created is not valid: "+licenseKey);
-  }
-
-  // TODO: write to database??
-  //
-
-  // display
-  var licenseInfo = licensing.decodeLicenseInfoFromKey(licenseKey);
-  var t = TABLE({border: 1});
-  function line(k, v) {
-    t.push(TR(TD({align: "right"}, k+":"),
-              TD(v)));
-  }
-
-  var key = licenseKey.split(":")[2];
-  if ((key.length % 2) != 0) {
-    key = key + "+";
-  }
-  var keyLine1 = key.substr(0, key.length/2);
-  var keyLine2 = key.substr(key.length/2, key.length);
-
-  line("Name", licenseInfo.personName);
-  line("Organization", licenseInfo.organizationName);
-  line("Key", P(keyLine1, BR(), keyLine2));
-  line("Software Edition", licenseInfo.editionName);
-  line("User Quota", licenseInfo.userQuota);
-  line("Expires", (+licenseInfo.expiresDate > 0) ? licenseInfo.expiresDate.toString() : "(never)");
-
-  response.write(HTML(BODY(t)));
 }
 
 //----------------------------------------------------------------

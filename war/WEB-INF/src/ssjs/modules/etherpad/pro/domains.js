@@ -21,7 +21,6 @@ import("sqlbase.sqlobj");
 
 import("etherpad.pro.pro_utils");
 import("etherpad.pne.pne_utils");
-import("etherpad.licensing");
 
 jimport("java.lang.System.out.println");
 
@@ -109,24 +108,9 @@ function getPrivateNetworkDomainId() {
 
 /** returns null if not found. */
 function getRequestDomainRecord() {
-  if (pne_utils.isPNE()) {
-    var r = getDomainRecord(getPrivateNetworkDomainId());
-    if (appjet.cache.fakePNE) {
-      r.orgName = "fake";
-    } else {
-      var licenseInfo = licensing.getLicense();
-      if (licenseInfo) {
-        r.orgName = licenseInfo.organizationName;
-      } else {
-        r.orgName = "Private Network Edition TRIAL";
-      }
-    }
-    return r;
-  } else {
-    var subDomain = pro_utils.getProRequestSubdomain();
-    var r = getDomainRecordFromSubdomain(subDomain);
-    return r;
-  }
+  var subDomain = pro_utils.getProRequestSubdomain();
+  var r = getDomainRecordFromSubdomain(subDomain);
+  return r;
 }
 
 /* throws exception if not pro domain request. */

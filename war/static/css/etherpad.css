@@ -203,51 +203,6 @@ body#padviewbody {
 	font-weight: bold;
 }
 
-
-/*----------------------------------------------------------------*/
-/* feature tour page */
-/*----------------------------------------------------------------*/
-#featuretourpage {}
-#featuretourpage p { margin-top: 1em; }
-#featuretourpage #screencastmsg { margin: 2em 0; }
-#featuretourpage .featurebox {
-   clear: both;
-   padding: 1em 1em;
-   margin-top: 2em;
-   margin-left: auto;
-   margin-right: auto;
-   background: #eee;
-   border: 1px solid #ccc;
-}
-#featuretourpage .featurebox .featureprose {
-}
-#featuretourpage .featurebox .featureprose h2 {
-}
-#featuretourpage .featurebox .featureprose p {
-   padding: 0;
-   margin: 1em 0;
-}
-#featuretourpage .featurebox img {
-   border: 1px solid #aaa;
-   margin: 0 1em 1em 1em;
-}
-#featuretourpage #usersbox div.featureprose {  }
-#featuretourpage #usersimg { float: right; }
-#featuretourpage #editsimg { padding: 0; margin: 0; }
-#featuretourpage #neverlosework img { float: left; }
-#featuretourpage #neverlosework div.featureprose {  }
-#featuretourpage #lockimg { float: right; border: 0;}
-#featuretourpage #revisionsimg { float: left; margin-left: 0; }
-#featuretourpage #codeimg { float: left; margin-left: 0; }
-#featuretourpage h2 {
-   margin-top: 0;
-   font-size: 1.5em;
-   font-weight: bold;
-}
-#featuretourpage p {
-   font-size: 1.1em;
-}
-
 /*----------------------------------------------------------------*/
 /* product page */
 /*----------------------------------------------------------------*/
@@ -438,17 +393,6 @@ div#faqpage h2 {
    color: #222;
    padding-left: 2em;
 }
-/*----------------------------------------------------------------*/
-/* company page */
-/*----------------------------------------------------------------*/
-
-#companypage div#appjetinc { width: 300px; float: left; padding: 2em; }
-#companypage div#appjetinc p { padding-left: 1em; }
-#companypage img#ajlogo { margin-top: 1em; border: 0; }
-#companypage img#pier38 { border: 1px solid #888; float: right; margin-top: 1em; }
-#companypage table img { border: 1px solid #444; margin-top: 4px; }
-#companypage table td { padding: 15px; vertical-align: top; }
-#companypage table td p.intro { margin-top: 0; }
 
 /*----------------------------------------------------------------*/
 /* create pad */
@@ -491,39 +435,6 @@ div#faqpage h2 {
    padding: 1em;
 }
 /*----------------------------------------------------------------*/
-/* beta signup */
-/*----------------------------------------------------------------*/
-#betasignuppage img#betasign { float: left; margin-top: 20px; }
-#betasignuppage div#betaformwrap {
-   margin: 15px;
-   padding: 20px;
-   margin-left: 200px;
-   border: 1px solid #ccc;
-   background: #eee;
-}
-#betasignuppage div#betaformwrap p {
-   margin: 0;
-   color: #333;
-   margin-bottom: 1em;
-}
-#betasignuppage div#betaform { padding: 2em 0; }
-#betasignuppage div#betaform input#email { font-size: 1.6em; color: #555; }
-#betasignuppage div#betaform button { font-size: 1.6em; }
-#betasignuppage div#confirm { display: none; }
-#betasignuppage div#error {
-   margin: 1em 3em 2em 2em;
-   color: red;
-   display: none;
-}
-#betasignuppage div#confirm {
-   margin: 2em 2em 2em 0em;
-   color: green;
-   font-weight: bold;
-   display: none;
-}
-#betasignuppage div#subtext { font-size: .9em; color: #666; }
-
-/*----------------------------------------------------------------*/
 /* time slider */
 /*----------------------------------------------------------------*/
 
@@ -562,62 +473,3 @@ body#padsliderbody {
   padding: 5px;
 }
 
-/*----------------------------------------------------------------*/
-/* testimonials */
-/*----------------------------------------------------------------*/
-
-#testimonials {
-  padding: 0 3em;
-  font-family: times serif;
-}
-
-#testimonials .head {
-  font-weight: bold;
-  padding-top: 4px;
-  padding-right: 80px;
-}
-
-#testimonials .quote-open {
-  background: url(/static/img/about/quote-open.png) no-repeat left top;
-  padding-left: 80px;
-  margin-top: 2em;
-}
-
-#testimonials .quote-close {
-  background: url(/static/img/about/quote-close.png) no-repeat right bottom;
-  padding-right: 80px;
-  text-align: justify;
-  color: #222;
-}
-
-#testimonials .attrib {
-  font-style: italic;
-  text-align: right;
-  padding-left: 2em;
-  padding-right: 80px;
-  color: #444;
-}
-
-#testimonials .attrib p {
-  margin: 0;
-}
-
-
-/* pne faq */
-
-div.pne-faq dt {
-  font-size: 1.1em;
-  border-bottom: 1px solid #444;
-  color: #666;
-  margin: 1.6em 0 0.75em 0;
-}
-
-/* support page */
-
-div#support-content {
-  margin: 0 4em;
-}
-
-div#forums-content {
-  margin: 0 4em;
-}
