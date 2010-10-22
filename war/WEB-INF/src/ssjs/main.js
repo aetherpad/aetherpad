@@ -27,7 +27,6 @@ import("etherpad.log");
 import("etherpad.utils.*");
 import("etherpad.statistics.statistics");
 import("etherpad.sessions");
-import("etherpad.db_migrations.migration_runner");
 import("etherpad.importexport.importexport");
 import("etherpad.legacy_urls");
 
@@ -41,7 +40,6 @@ import("etherpad.control.maincontrol");
 import("etherpad.control.pad.pad_control");
 import("etherpad.control.pne_manual_control");
 import("etherpad.control.pne_tracker_control");
-import("etherpad.control.pro.admin.license_manager_control");
 import("etherpad.control.pro_beta_control");
 import("etherpad.control.pro.pro_main_control");
 import("etherpad.control.pro_signup_control");
@@ -50,7 +48,6 @@ import("etherpad.control.scriptcontrol");
 import("etherpad.control.static_control");
 import("etherpad.control.testcontrol");
 
-import("etherpad.pne.pne_utils");
 import("etherpad.pro.pro_pad_editors");
 import("etherpad.pro.pro_utils");
 import("etherpad.pro.pro_config");
@@ -75,7 +72,6 @@ serverhandlers.startupHandler = function() {
 
   log.onStartup();
   statistics.onStartup();
-  migration_runner.onStartup();
   pad_migrations.onStartup();
 //  model.onStartup();
   collab_server.onStartup();

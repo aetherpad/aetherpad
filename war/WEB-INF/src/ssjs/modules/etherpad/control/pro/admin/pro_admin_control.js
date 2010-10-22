@@ -19,7 +19,6 @@ import("funhtml.*");
 import("dispatch.{Dispatcher,DirMatcher,forward}");
 
 import("etherpad.control.admincontrol");
-import("etherpad.control.pro.admin.license_manager_control");
 import("etherpad.control.pro.admin.account_manager_control");
 import("etherpad.control.pro.admin.pro_config_control");
 
@@ -116,7 +115,6 @@ function renderAdminPage(p, data) {
 function onRequest() {
   var disp = new Dispatcher();
   disp.addLocations([
-    [DirMatcher(license_manager_control.getPath()), forward(license_manager_control)],
     [DirMatcher('/ep/admin/account-manager/'), forward(account_manager_control)],
     [DirMatcher('/ep/admin/pro-config/'), forward(pro_config_control)],
   ]);
@@ -150,7 +148,6 @@ var _documentedServerOptions = [
   'smtpUser',
   'smtpPass',
   'configFile',
-  'etherpad.licenseKey',
   'verbose'
 ];
 
