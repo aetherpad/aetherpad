@@ -21,7 +21,6 @@ import("jsutils.*");
 import("sqlbase.sqlcommon");
 import("stringutils");
 
-import("etherpad.billing.team_billing");
 import("etherpad.globals.*");
 import("etherpad.log.{logRequest,logException}");
 import("etherpad.log");
@@ -86,7 +85,6 @@ serverhandlers.startupHandler = function() {
   importexport.onStartup();
   pro_pad_editors.onStartup();
   noprowatcher.onStartup();
-  team_billing.onStartup();
   collabroom_server.onStartup();
 };
 

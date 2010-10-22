@@ -233,27 +233,3 @@ function render_pricing_eepnet_support() {
 }
 
 
-//------------------------------------------------------------
-// survey
-
-function render_survey() {
-  var id = request.params.id;
-  log.custom("pro-user-survey", { surveyProAccountId: (id || "unknown") });
-  response.redirect("http://www.surveymonkey.com/s.aspx?sm=yT3ALP0pb_2fP_2bHtcfzvpkXQ_3d_3d");
-}
-
-
-//------------------------------------------------------------
-
-import("etherpad.billing.billing");
-
-function render_testbillingnotify() {
-  var ret = billing.handlePaypalNotification();
-  if (ret.status == 'completion') {
-    // do something with purchase ret.purchaseInfo
-  } else if (ret.status != 'redundant') {
-    java.lang.System.out.println("Whoa error: "+ret.toSource());
-  }
-  response.write("ok");
-}
-
