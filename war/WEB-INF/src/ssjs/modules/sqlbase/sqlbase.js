@@ -38,8 +38,8 @@ function _makeDatastoreKey(parentKey, tableName, stringKey) {
   return KeyFactory.createKey(parentKey || null, _getKind(tableName), stringKey);
 }
 
-function getPadParentKey(padId) {
-  return _makeDatastoreKey(null, "PAD_META", padId);
+function getRootKey(kind, name) {
+  return _makeDatastoreKey(null, kind, name);
 }
 
 /**

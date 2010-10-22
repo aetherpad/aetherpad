@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -236,13 +236,13 @@ function _getKind(tableName) {
 
 function _setEntityProperties(tableName, entity, obj) {
   keys(obj).forEach(function(k) {
-    if (! appjet.cache.sqlobj_tables ||
-        ! appjet.cache.sqlobj_tables[tableName] ||
-        appjet.cache.sqlobj_tables[tableName].indices[k]) {
+//    if (! appjet.cache.sqlobj_tables ||
+//        ! appjet.cache.sqlobj_tables[tableName] ||
+//        appjet.cache.sqlobj_tables[tableName].indices[k]) {
       entity.setProperty(k, _getDatastoreValue(obj[k]));
-    } else {
-      entity.setUnindexedProperty(k, _getDatastoreValue(obj[k]));
-    }
+//    } else {
+//      entity.setUnindexedProperty(k, _getDatastoreValue(obj[k]));
+//    }
   });
 }
 
@@ -254,7 +254,7 @@ function insert(tableName, obj) {
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
-  
+
   var entity = (parentKey ?
     new Entity(_getKind(tableName), parentKey) :
     new Entity(_getKind(tableName)));
@@ -276,7 +276,7 @@ function selectSingle(tableName, constraints) {
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
-  
+
   if (constraints.id instanceof Key) {
     try {
       return _entityToJsObj(ds.get(transaction, constraints.id));
@@ -287,12 +287,12 @@ function selectSingle(tableName, constraints) {
       throw e;
     }
   }
-  
+
   var query = new Query(_getKind(tableName), parentKey);
   keys(constraints).forEach(function(key) {
     query.addFilter(key, Query.FilterOperator.EQUAL, constraints[key]);
   });
-  
+
   query = ds.prepare(txn, query);
   var i = query.asIterator(FetchOptions.Builder.withLimit(1));
   if (i.hasNext()) {
@@ -317,7 +317,7 @@ function _getEntitiesForConstraints(tableName, constraints, options) {
     query.addFilter(key, Query.FilterOperator.EQUAL, constraints[key]);
   });
 
-  if (options.orderBy) {    
+  if (options.orderBy) {
     options.orderBy.split(",").forEach(function(orderBy) {
       var direction = Query.SortDirection.ASCENDING;
       if (orderBy.charAt(0) == '-') {
@@ -331,7 +331,7 @@ function _getEntitiesForConstraints(tableName, constraints, options) {
   if (options.keysOnly) {
     query.setKeysOnly();
   }
-  
+
   query = ds.prepare(txn, query);
   var fetchOptions = FetchOptions.Builder.withDefaults();
 
@@ -344,8 +344,8 @@ function _getEntitiesForConstraints(tableName, constraints, options) {
   while (results.hasNext()) {
     resultArray.push(results.next());
   }
-  
-  return resultArray;  
+
+  return resultArray;
 }
 
 function selectMulti(tableName, constraints, options) {
@@ -359,14 +359,14 @@ function update(tableName, constraints, obj) {
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
-  
+
   if (constraints.id instanceof Key) {
     // this isn't a constrained update, it's a single-object update.
     try {
       var entity = ds.get(transaction, obj.id);
       _setEntityProperties(tableName, entity, obj);
       ds.put(transaction, entity);
-      return 1;      
+      return 1;
     } catch (e) {
       if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
         return 0;
@@ -374,7 +374,7 @@ function update(tableName, constraints, obj) {
       throw e;
     }
   }
-  
+
   var matchingEntities = _getEntitiesForConstraints(tableName, constraints);
   matchingEntities.forEach(function(entity) {
     _setEntityProperties(tableName, entity, obj);
@@ -414,6 +414,7 @@ function deleteRows(tableName, constraints) {
  * Create a SQL table, specifying column names and types with a
  * javascript object.
  */
+/*
 function createTable(tableName, colspec, indices) {
   if (! appjet.cache.sqlobj_tables) {
     appjet.cache.sqlobj_tables = {};
@@ -423,7 +424,7 @@ function createTable(tableName, colspec, indices) {
     return;
   }
   _tables[tableName] = { keys: colspec, indices: indices };
-  // 
+  //
   // var stmnt = "CREATE TABLE "+_bq(tableName)+ " (";
   // stmnt += keys(colspec).map(function(k) { return (_bq(k) + ' ' + colspec[k]); }).join(', ');
   // if (indices) {
@@ -432,4 +433,5 @@ function createTable(tableName, colspec, indices) {
   // stmnt += ')'+createTableOptions();
   // _execute(stmnt);
 }
+*/
 
