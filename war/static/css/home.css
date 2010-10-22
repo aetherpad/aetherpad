@@ -195,41 +195,6 @@ right: 12px;
 right: 24px;
 }
 
-#blog {
-width: 213px;
-float: left;
-       margin-right: 12px;
-clear: left;
-}
-#blog h3 {
-  font-family: Calibri, "Trebuchet MS", Trebuchet, Arial, Helvetica, sans-serif;
-color: #666;
-       text-transform: uppercase;
-       text-shadow: 0 1px 0 #fff;
-       letter-spacing: 1px;
-}
-#blog li {
-margin: 1.25em 0;
-}
-#blog li strong a {
-  font-size: 1.33em;
-  font-family: Calibri, Arial, Helvetica, sans-serif;
-  font-weight: bold;
-}
-#blog li small {
-display: block;
-         font-size: .917em;
-         font-family: Calibri, Arial, Helvetica, sans-serif;
-color: #666;
-margin: 2px 0;
-}
-#blog li small a {
-color: #4182c2;
-}
-#blog li span {
-  line-height: 1.3;
-}
-
 #quotes {
 width: 406px;
 float: left;

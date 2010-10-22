@@ -23,7 +23,6 @@ import("etherpad.control.admincontrol");
 import("etherpad.control.pro.admin.license_manager_control");
 import("etherpad.control.pro.admin.account_manager_control");
 import("etherpad.control.pro.admin.pro_config_control");
-import("etherpad.control.pro.admin.team_billing_control");
 
 import("etherpad.pad.padutils");
 
@@ -55,10 +54,7 @@ function _getLeftnavItems() {
       [_PRO, [[_PNE_ONLY, "pne-config", "Private Server Configuration"],
               [_PRO, "pro-config", "Application Configuration"]]],
       [_PNE_ONLY, null, "Documentation"],
-      [_PNE_ONLY, "/ep/pne-manual/", "Administrator's Manual"],
-      [_ONDEMAND_ONLY, null, "Billing"],
-      [_ONDEMAND_ONLY, "billing/", "Payment Information"],
-      [_ONDEMAND_ONLY, "billing/invoices", "Past Invoices"],
+      [_PNE_ONLY, "/ep/pne-manual/", "Administrator's Manual"]
     ]
   ];
   return nav;
@@ -139,7 +135,6 @@ function onRequest() {
     [DirMatcher(license_manager_control.getPath()), forward(license_manager_control)],
     [DirMatcher('/ep/admin/account-manager/'), forward(account_manager_control)],
     [DirMatcher('/ep/admin/pro-config/'), forward(pro_config_control)],
-    [DirMatcher('/ep/admin/billing/'), forward(team_billing_control)],
   ]);
 
   if (disp.dispatch()) {

@@ -127,25 +127,3 @@ function isActivationAllowed() {
   });
 }
 
-function render_payment_required_get() {
-  // Users get to this page when there is a problem with billing:
-  // possibilities:
-  //   * they try to create a new account but they have not entered
-  //   payment information
-  //
-  //   * their credit card lapses and any pro request fails.
-  //
-  //   * others?
-
-  var message = getSession().billingProblem || "A payment is required to proceed.";
-  var adminList = pro_accounts.listAllDomainAdmins();
-
-  renderFramed("pro/pro-payment-required.ejs", {
-    message: message,
-    isAdmin: pro_accounts.isAdminSignedIn(),
-    adminList: adminList
-  });
-}
-
-
-

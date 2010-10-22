@@ -26,7 +26,6 @@ import("varz");
 import("comet");
 import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 
-import("etherpad.billing.team_billing");
 import("etherpad.globals.*");
 import("etherpad.utils.*");
 import("etherpad.licensing");
@@ -36,7 +35,6 @@ import("etherpad.statistics.statistics");
 import("etherpad.log");
 import("etherpad.admin.shell");
 import("etherpad.usage_stats.usage_stats");
-import("etherpad.control.blogcontrol");
 import("etherpad.control.pro_beta_control");
 import("etherpad.control.statscontrol");
 import("etherpad.statistics.exceptions");
@@ -84,7 +82,6 @@ var _mainLinks = [
   ['diagnostics', 'Pad Connection Diagnostics'],
   ['cachebrowser', 'Cache Browser'],
   ['pne-tracker', 'PNE Tracking Stats'],
-  ['reload-blog-db', 'Reload blog DB'],
   ['pro-domain-accounts', 'Pro Domain Accounts'],
   ['beta-valve', 'Beta Valve'],
   ['reset-subscription', "Reset Subscription"]
@@ -354,20 +351,6 @@ function renderServerUptime() {
   return sprintf("%.1f %s", time, labels[pos]);
 }
 
-function renderRevenueStats() {
-  var subs = team_billing.getAllSubscriptions();
-  var total = 0;
-  var totalUsers = 0;
-  subs.forEach(function(sub) {
-    var users = team_billing.getMaxUsers(sub.customer);
-    var cost = team_billing.calculateSubscriptionCost(users, sub.coupon);
-    if (cost > 0) {
-      totalUsers += users;
-      total += cost;
-    }
-  });
-  return "US $"+checkout.dollars(total)+", from "+subs.length+" domains and "+totalUsers+" users.";
-}
 
 //----------------------------------------------------------------
 // Broadcasting Messages
@@ -851,121 +834,6 @@ function render_diagnostics() {
 }
 
 //----------------------------------------------------------------
-import("etherpad.billing.billing");
-
-function render_testbillingdirect() {
-  var invoiceId = billing.createInvoice();
-  var ret = billing.directPurchase(invoiceId, 0, 'EEPNET', 500, 'DISCOUNT', {
-    cardType: "Visa",
-    cardNumber: "4501251685453214",
-    cardExpiration: "042019",
-    cardCvv: "123",
-    nameSalutation: "Dr.",
-    nameFirst: "John",
-    nameMiddle: "D",
-    nameLast: "Zamfirescu",
-    nameSuffix: "none",
-    addressStreet: "531 Main St. Apt. 1227",
-    addressStreet2: "",
-    addressCity: "New York",
-    addressState: "NY",
-    addressCountry: "US",
-    addressZip: "10044"
-  }, "https://"+request.host+"/ep/about/testbillingnotify");
-  if (ret.status == 'success') {
-    response.write(P("Success! Invoice id: "+ret.purchaseInfo.invoiceId+" for "+ret.purchaseInfo.cost));
-  } else {
-    response.write(P("Failure: "+ret.toSource()))
-  }
-}
-
-function render_testbillingrecurring() {
-  var invoiceId = billing.createInvoice();
-  var ret = billing.directPurchase(invoiceId, 0, 'EEPNET', 1, 'DISCOUNT', {
-    cardType: "Visa",
-    cardNumber: "4501251685453214",
-    cardExpiration: "042019",
-    cardCvv: "123",
-    nameSalutation: "Dr.",
-    nameFirst: "John",
-    nameMiddle: "D",
-    nameLast: "Zamfirescu",
-    nameSuffix: "none",
-    addressStreet: "531 Main St. Apt. 1227",
-    addressStreet2: "",
-    addressCity: "New York",
-    addressState: "NY",
-    addressCountry: "US",
-    addressZip: "10044"
-  }, "https://"+request.host+"/ep/about/testbillingnotify", true);
-  if (ret.status == 'success') {
-    var transactionId = billing.getTransaction(ret.purchaseInfo.transactionId).txnId;
-    var purchaseId = ret.purchaseInfo.purchaseId;
-    response.write(P("Direct billing successful. PayPal transaction id: ", transactionId));
-
-    invoiceId = billing.createInvoice();
-    ret = billing.asyncRecurringPurchase(
-      invoiceId, purchaseId, transactionId, 500,
-      "https://"+request.host+"/ep/about/testbillingnotify");
-    if (ret.status == 'success') {
-      response.write(P("Woot! Recurrent billing successful! ", ret.purchaseInfo.invoiceId, " for ", ret.purchaseInfo.cost));
-    } else {
-      response.write(P("Failure: "+ret.toSource()));
-    }
-  } else {
-    response.write("Direct billing failure: "+ret.toSource());
-  }
-}
-
-function render_testbillingexpress() {
-  var urlPrefix = "http://"+request.host+request.path;
-  var session = sessions.getSession();
-  var notifyUrl = "http://"+request.host+"/ep/about/testbillingnotify";
-
-  switch (request.params.step) {
-    case '0':
-      response.write(P("You'll be charged $400 for EEPNET. Click the link below to go to paypal."));
-      response.write(A({href: urlPrefix+"?step=1"}, "Link"));
-      break;
-    case '1':
-      var ret = billing.beginExpressPurchase(1, 'EEPNET', 400, 'DISCOUNT', urlPrefix+"?step=2", urlPrefix+"?step=0", notifyUrl);
-      if (ret.status != 'success') {
-        response.write("Error: "+ret.debug.toSource());
-        response.stop();
-      }
-      session.purchaseInfo = ret.purchaseInfo;
-      response.redirect(paypalPurchaseUrl(ret.purchaseInfo.token));
-      break;
-    case '2':
-      var ret = billing.continueExpressPurchase(session.purchaseInfo);
-      if (! ret.status == 'success') {
-        response.write("Error: "+ret.debug.toSource());
-        response.stop();
-      }
-      session.payerInfo = ret.payerInfo;
-
-      response.write(P("You approved the transaction. Click 'confirm' to confirm."));
-      response.write(A({href: urlPrefix+"?step=3"}, "Confirm"));
-      break;
-    case '3':
-      var ret = billing.completeExpressPurchase(session.purchaseInfo, session.payerInfo, notifyUrl);
-      if (ret.status == 'failure') {
-        response.write("Error: "+ret.debug.toSource());
-        response.stop();
-      }
-      if (ret.status == 'pending') {
-        response.write("Your charge is pending. You will be notified by email when your payment clears. Your invoice number is "+session.purchaseInfo.invoiceId);
-        response.stop();
-      }
-
-      response.write(P("Purchase completed: invoice # is "+session.purchaseInfo.invoiceId+" for "+session.purchaseInfo.cost));
-      break;
-    default:
-      response.redirect(request.path+"?step=0");
-  }
-}
-
-//----------------------------------------------------------------
 
 function render_genlicense_get() {
 
@@ -1263,21 +1131,6 @@ function render_pne_tracker_lookup_keyhash_get() {
   }
 }
 
-function render_reload_blog_db_get() {
-  var d = DIV();
-  if (request.params.ok) {
-    d.push(DIV(P("OK")));
-  }
-  d.push(FORM({method: "post", action: request.path},
-    INPUT({type: "submit", value: "Reload Blog DB Now"})));
-  response.write(HTML(BODY(d)));
-}
-
-function render_reload_blog_db_post() {
-  blogcontrol.reloadBlogDb();
-  response.redirect(request.path+"?ok=1");
-}
-
 function render_pro_domain_accounts() {
   var accounts = sqlobj.selectMulti('pro_accounts', {}, {});
   var domains = sqlobj.selectMulti('pro_domains', {}, {});
@@ -1400,72 +1253,4 @@ function render_setadminmode() {
   response.redirect("/ep/admin/");
 }
 
-// --------------------------------------------------------------
-// billing-related
-// --------------------------------------------------------------
 
-// some of these functions are only used from selenium tests, and so have no UI.
-
-function render_setdomainpaidthrough() {
-  var domainName = request.params.domain;
-  var when = new Date(Number(request.params.paidthrough));
-  if (! domainName || ! when) {
-    response.write("fail");
-    response.stop();
-  }
-  var domain = domains.getDomainRecordFromSubdomain(domainName);
-  var domainId = domain.id;
-
-  var subscription = team_billing.getSubscriptionForCustomer(domainId);
-  if (subscription) {
-    billing.updatePurchase(subscription.id, {paidThrough: when});
-    team_billing.domainCacheClear(domainId);
-    response.write("OK");
-  } else {
-    response.write("fail");
-  }
-}
-
-function render_runsubscriptions() {
-  team_billing.processAllSubscriptions();
-  response.write("OK");
-}
-
-function render_reset_subscription() {
-  var body = BODY();
-  if (request.isGet) {
-    body.push(FORM({method: "POST"},
-                   "Subdomain: ", INPUT({type: "text", name: "subdomain"}), BUTTON({name: "clear"}, "Go")));
-  } else if (request.isPost) {
-    if (! request.params.confirm) {
-      var domain = domains.getDomainRecordFromSubdomain(request.params.subdomain);
-      var admins = pro_accounts.listAllDomainAdmins(domain.id);
-      body.push(P("Domain ", domain.subDomain, ".", request.domain, "; admins:"));
-      var p = UL();
-      admins.forEach(function(admin) {
-        p.push(LI(admin.fullName, " <", admin.email, ">"));
-      });
-      body.push(p);
-      var subscription = team_billing.getSubscriptionForCustomer(domain.id);
-      if (subscription) {
-        body.push(P("Subscription is currently ", subscription.status, ", and paid through: ", checkout.formatDate(subscription.paidThrough), "."))
-        body.push(FORM({method: "POST"},
-                       INPUT({type: "hidden", name: "subdomain", value: request.params.subdomain}),
-                       "Are you sure? ", BUTTON({name: "confirm", value: "yes"}, "YES")));
-      } else {
-        body.push(P("No current subscription"));
-      }
-    } else {
-      var domain = domains.getDomainRecordFromSubdomain(request.params.subdomain);
-      sqlcommon.inTransaction(function() {
-        team_billing.resetMaxUsers(domain.id);
-        sqlobj.deleteRows('billing_purchase', {customer: domain.id, type: 'subscription'});
-        team_billing.domainCacheClear(domain.id);
-        team_billing.clearRecurringBillingInfo(domain.id);
-      });
-      body.push("Done!")
-    }
-  }
-  body.push(A({href: request.path}, html("&laquo; back")));
-  response.write(HTML(body));
-}

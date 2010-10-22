@@ -24,8 +24,6 @@ import("etherpad.licensing");
 import("etherpad.log");
 import("etherpad.utils.*");
 
-import("etherpad.control.blogcontrol");
-
 import("etherpad.pad.model");
 import("etherpad.collab.collab_server");
 
@@ -37,9 +35,7 @@ function render_main() {
   if (request.path == '/ep/') {
     response.redirect('/');
   }
-  renderFramed('main/home.ejs', {
-    newFromEtherpad: blogcontrol.render_new_from_etherpad()
-  });
+  renderFramed('main/home.ejs', {});
   return true;
 }
 
