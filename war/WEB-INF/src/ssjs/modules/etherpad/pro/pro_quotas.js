@@ -23,7 +23,6 @@ import("etherpad.globals.*");
 import("etherpad.pro.pro_accounts");
 import("etherpad.pro.domains");
 import("etherpad.sessions.getSession");
-import("etherpad.store.checkout");
 
 function _createRecordIfNecessary(domainId) {
   inTransaction(function() {

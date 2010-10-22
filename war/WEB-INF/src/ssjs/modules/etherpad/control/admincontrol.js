@@ -38,7 +38,6 @@ import("etherpad.usage_stats.usage_stats");
 import("etherpad.control.pro_beta_control");
 import("etherpad.control.statscontrol");
 import("etherpad.statistics.exceptions");
-import("etherpad.store.checkout");
 
 import("etherpad.pad.activepads");
 import("etherpad.pad.model");

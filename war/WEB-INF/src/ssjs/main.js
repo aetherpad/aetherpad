@@ -48,7 +48,6 @@ import("etherpad.control.pro_signup_control");
 import("etherpad.control.pro_help_control");
 import("etherpad.control.scriptcontrol");
 import("etherpad.control.static_control");
-import("etherpad.control.store.storecontrol");
 import("etherpad.control.testcontrol");
 
 import("etherpad.pne.pne_utils");
@@ -298,7 +297,6 @@ function checkHTTPS() {
   var _requiredHttpsPrefixes = [
     '/ep/admin',      // pro and etherpad
     '/ep/account',    // pro only
-    '/ep/store',      // etherpad.com only
     '/ep/pro-account' // etherpad.com only
   ];
 
@@ -373,7 +371,6 @@ function handlePath() {
     [DirMatcher('/ep/pro-account/'), forward(global_pro_account_control)],
     [/^\/ep\/pad\/history\/(\w+)\/(.*)$/, historycontrol.render_history],
     [PrefixMatcher('/ep/pad/slider/'), pad_control.render_slider],
-    [DirMatcher('/ep/store/'), forward(storecontrol)],
     [PrefixMatcher('/ep/'), forward(maincontrol)]
   ]);
 
