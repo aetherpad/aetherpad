@@ -54,9 +54,6 @@ function getResult(cmd) {
       // if (e instanceof JavaException) {
       //   e = new net.appjet.bodylock.JSRuntimeException(e.getMessage(), e.javaException);
       // }
-      if (appjet.config.devMode) {
-        (e.javaException || e.rhinoException || e).printStackTrace();
-      }
       result = exceptionutils.getStackTracePlain(e);
     }
     var resultString;

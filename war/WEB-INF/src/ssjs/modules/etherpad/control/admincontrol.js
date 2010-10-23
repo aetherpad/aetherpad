@@ -30,13 +30,9 @@ import("etherpad.globals.*");
 import("etherpad.utils.*");
 import("etherpad.sessions.getSession");
 import("etherpad.sessions");
-import("etherpad.statistics.statistics");
 import("etherpad.log");
 import("etherpad.admin.shell");
-import("etherpad.usage_stats.usage_stats");
 import("etherpad.control.pro_beta_control");
-import("etherpad.control.statscontrol");
-import("etherpad.statistics.exceptions");
 
 import("etherpad.pad.activepads");
 import("etherpad.pad.model");
@@ -64,11 +60,8 @@ function _isAuthorizedAdmin() {
 }
 
 var _mainLinks = [
-  ['exceptions', 'Exceptions Monitor'],
-  ['usagestats/', 'Usage Stats'],
   ['padinspector', 'Pad Inspector'],
   ['dashboard', 'Dashboard'],
-  ['eepnet-licenses', 'EEPNET Licenses'],
   ['config', 'appjet.config'],
   ['shell', 'Shell'],
   ['timings', 'timing data'],
@@ -96,7 +89,6 @@ function onRequest(name) {
 
   var disp = new Dispatcher();
   disp.addLocations([
-    [PrefixMatcher('/ep/admin/usagestats/'), forward(statscontrol)]
   ]);
 
   return disp.dispatch();
@@ -497,24 +489,6 @@ function render_padinspector_get() {
 
 function render_analytics() {
   response.redirect("https://www.google.com/analytics/reporting/?reset=1&id=12611622");
-}
-
-//----------------------------------------------------------------
-// eepnet license display
-//----------------------------------------------------------------
-
-function render_eepnet_licenses() {
-  var data = sqlobj.selectMulti('eepnet_signups', {}, {orderBy: 'date'});
-  var t = TABLE({border: 1, cellspacing: 0, cellpadding: 2});
-  var cols = ['date','email','orgName','firstName','lastName', 'jobTitle','phone','estUsers'];
-  data.forEach(function(x) {
-    var tr = TR();
-    cols.forEach(function(colname) {
-      tr.push(TD(x[colname]));
-    });
-    t.push(tr);
-  });
-  response.write(HTML(BODY({style: 'font-family: monospace;'}, t)));
 }
 
 //----------------------------------------------------------------
@@ -1132,10 +1106,6 @@ function render_beta_invite_multisend_post() {
 
 function render_usagestats() {
   response.redirect("/ep/admin/usagestats/");
-}
-
-function render_exceptions() {
-  exceptions.render();
 }
 
 function render_setadminmode() {

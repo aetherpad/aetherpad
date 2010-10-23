@@ -25,7 +25,6 @@ import("etherpad.globals.*");
 import("etherpad.log.{logRequest,logException}");
 import("etherpad.log");
 import("etherpad.utils.*");
-import("etherpad.statistics.statistics");
 import("etherpad.sessions");
 import("etherpad.importexport.importexport");
 import("etherpad.legacy_urls");
@@ -66,9 +65,6 @@ jimport("java.lang.System.out.println");
 serverhandlers.startupHandler = function() {
   // Order matters.
   checkSystemRequirements();
-
-  var sp = function(k) { return appjet.config['etherpad.SQL_'+k] || null; };
-  sqlcommon.init(sp('JDBC_DRIVER'), sp('JDBC_URL'), sp('USERNAME'), sp('PASSWORD'));
 
   log.onStartup();
   statistics.onStartup();
@@ -241,6 +237,11 @@ function checkRequestIsWellFormed() {
 // checkHost()
 //----------------------------------------------------------------
 function checkHost() {
+
+  // Allow all domains.
+  return;
+
+
   // if (appjet.config['etherpad.skipHostnameCheck'] == "true") {
   //   return;
   // }

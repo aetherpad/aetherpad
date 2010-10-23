@@ -21,11 +21,11 @@ import("stringutils.{toHTML,sprintf}");
 
 function _getException(ex) {
   if (ex instanceof java.lang.Throwable) {
-    return new net.appjet.bodylock.JSRuntimeException(ex.getMessage(), ex);
+    return new Packages.appjet.JSRuntimeException(ex.getMessage(), ex);
   } else if (ex.javaException) {
-    return new net.appjet.bodylock.JSRuntimeException(ex.javaException.getMessage(), ex.javaException);
+    return new Packages.appjet.JSRuntimeException(ex.javaException.getMessage(), ex.javaException);
   } else if (ex.rhinoException) {
-    return new net.appjet.bodylock.JSRuntimeException(ex.rhinoException.getMessage(), ex.rhinoException);
+    return new Packages.appjet.JSRuntimeException(ex.rhinoException.getMessage(), ex.rhinoException);
   } else {
     return ex;
   }
