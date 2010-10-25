@@ -20,39 +20,42 @@ import("jsutils.{scalaF0,scalaF1}");
  * Asynchronously call a function as soon as the current request completes.
  **/
 function async(f) {
+  throw Error("Not implemented.");
   Packages.net.appjet.ajstdlib.execution.runAsync(appjet.context, f);
 }
 
 function initTaskThreadPool(name, poolSize) {
+  throw Error("Not implemented.");
   Packages.net.appjet.ajstdlib.execution.createNamedTaskThreadPool(name, poolSize);
 }
 
 function scheduleTask(poolName, taskName, delayMillis, args) {
+  throw Error("Not implemented.");
   return Packages.net.appjet.ajstdlib.execution.scheduleTaskInPool(poolName, taskName, delayMillis, args);
 }
 
 function shutdownAndWaitOnTaskThreadPool(poolName, timeoutMillis) {
+  throw Error("Not implemented.");
   return Packages.net.appjet.ajstdlib.execution.shutdownAndWaitOnTaskThreadPool(poolName, timeoutMillis);
 }
 
 function fancyAssEval(initCode, mainCode) {
-  function init(runner) {
-    Packages.net.appjet.bodylock.BodyLock.evaluateString(
-      runner.globalScope(),
+  function init(scope) {
+    Packages.appjet.BodyLock.evaluateString(
+      scope,
       initCode,
       "eval'd code imports",
       1);
   }
-  var runner = Packages.net.appjet.oui.ScopeReuseManager.getEmpty(scalaF1(init));
-  var ec = new Packages.net.appjet.oui.ExecutionContext(
-    new Packages.net.appjet.oui.RequestWrapper(request.underlying),
-    null, runner);
-  return Packages.net.appjet.oui.ExecutionContextUtils.withContext(ec,
-    scalaF0(function() {
-      return Packages.net.appjet.bodylock.BodyLock.evaluateString(
-        runner.globalScope(),
+  return Packages.appjet.ScopeManager.withTransientScope(scalaF1(init), scalaF1(function(scope) {
+    var ec = new Packages.appjet.ExecutionContext(
+      request.underlying, null, scope);
+    return Packages.appjet.ExecutionContextUtils.withContext(ec, scalaF0(function() {
+      return Packages.appjet.BodyLock.evaluateString(
+        Packages.appjet.BodyLock.subScope(scope.mainRhinoScope()),
         mainCode,
         "eval'd code main",
-        1);        
+        1);
     }));
+  }));
 }

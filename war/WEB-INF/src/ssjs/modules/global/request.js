@@ -282,6 +282,12 @@ get acceptsGzip() {
       });
     });
   }
+},
+
+get underlying() {
+  if (this.isDefined) {
+    return _req();
+  }
 }
 
 }; // end: var request = {...

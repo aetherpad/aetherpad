@@ -17,7 +17,9 @@ object ScopeManager {
   def withScope(block: Scope => Unit) = synchronized {
     try {
       if (cachedScope.isEmpty) {
-        cachedScope = Some(new Scope(BodyLock.subScope(mainGlobalRhinoScope)));
+        cachedScope = Some(new Scope(
+          BodyLock.subScope(mainGlobalRhinoScope),
+          scope => ScopeManager.main.executable.get.execute(scope)));
       }
       block(cachedScope.get);      
     } finally {
@@ -25,15 +27,20 @@ object ScopeManager {
       cachedScope = None;
     }
   }
+
+  def withTransientScope[E](init: Scriptable => Unit, main: Scope => E): E = {
+    val scope = new Scope(BodyLock.subScope(mainGlobalRhinoScope), init);
+    main(scope);
+  }
 }
 
-class Scope(val parentRhinoScope: Scriptable) {
+class Scope(val parentRhinoScope: Scriptable, init: Scriptable => Unit) {
   val mainRhinoScope = BodyLock.subScope(parentRhinoScope);
   val attributes = new HashMap[String, Object];
   
   ExecutionContextUtils.withContext(ExecutionContext(null, null, this)) {
-    ScopeManager.preamble.executable.get.execute(parentRhinoScope)
-    ScopeManager.main.executable.get.execute(mainRhinoScope)
-    ScopeManager.postamble.executable.get.execute(parentRhinoScope)
+    ScopeManager.preamble.executable.get.execute(parentRhinoScope);
+    init(mainRhinoScope);
+    ScopeManager.postamble.executable.get.execute(parentRhinoScope);
   }
 }
