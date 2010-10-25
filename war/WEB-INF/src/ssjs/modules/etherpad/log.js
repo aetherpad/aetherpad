@@ -69,44 +69,6 @@ serverhandlers.tasks.trackerAndSessionIds = function() {
   return m;
 }
 
-function onStartup() {
-  var f = execution.wrapRunTask("trackerAndSessionIds", null,
-    java.lang.Class.forName("scala.collection.mutable.HashMap"));
-  net.appjet.oui.GenericLoggerUtils.setExtraPropertiesFunction(f);
-}
-
-//----------------------------------------------------------------
-// Logfile parsing
-//----------------------------------------------------------------
-
-function _n(x) {
-  if (x < 10) { return "0"+x; }
-  else { return x; }
-}
-
-function logFileName(prefix, logName, day) {
-  var fmt = [day.getFullYear(), _n(day.getMonth()+1), _n(day.getDate())].join('-');
-  var fname = (appjet.config['logDir'] + '/'+prefix+'/' + logName + '/' +
-	       logName + '-' + fmt + '.jslog');
-
-  // make sure file exists
-  if (!(new File(fname)).exists()) {
-    //log.warn("WARNING: file does not exist: "+fname);
-    return null;
-  }
-
-  return fname;
-}
-
-function frontendLogFileName(logName, day) {
-  return logFileName('frontend', logName, day);
-}
-
-function backendLogFileName(logName, day) {
-  return logFileName('backend', logName, day);
-}
-
-//----------------------------------------------------------------
 function _getRequestLogEntry() {
   if (request.isDefined) {
     var logEntry = {
