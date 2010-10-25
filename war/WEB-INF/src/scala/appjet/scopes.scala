@@ -11,7 +11,7 @@ object ScopeManager {
 
   // these had better exist!
   def preamble = Libraries.get("WEB-INF/src/ssjs/preamble.js");
-  def main = Libraries.get("WEB-INF/src/ssjs/main.js");
+  def main = Libraries.get("WEB-INF/src/ssjs/modules/etherpad/main.js");
   def postamble = Libraries.get("WEB-INF/src/ssjs/postamble.js");
   
   def withScope(block: Scope => Unit) = synchronized {
