@@ -37,13 +37,9 @@ import("etherpad.control.historycontrol");
 import("etherpad.control.loadtestcontrol");
 import("etherpad.control.maincontrol");
 import("etherpad.control.pad.pad_control");
-import("etherpad.control.pne_manual_control");
-import("etherpad.control.pne_tracker_control");
-import("etherpad.control.pro_beta_control");
 import("etherpad.control.pro.pro_main_control");
 import("etherpad.control.pro_signup_control");
 import("etherpad.control.pro_help_control");
-import("etherpad.control.scriptcontrol");
 import("etherpad.control.static_control");
 import("etherpad.control.testcontrol");
 
@@ -348,23 +344,19 @@ function handlePath() {
     [PrefixMatcher('/static/'), forward(static_control)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
-    [PrefixMatcher('/ep/script/'), forward(scriptcontrol)],
     [/^\/([^\/]+)$/, pad_control.render_pad],
     [DirMatcher('/ep/test/'), forward(testcontrol)],
-    [DirMatcher('/ep/pne-manual/'), forward(pne_manual_control)],
     [DirMatcher('/ep/pro-help/'), forward(pro_help_control)]
   ]);
 
   var etherpadDotComDispatcher = new Dispatcher();
   etherpadDotComDispatcher.addLocations([
     ['/', maincontrol.render_main],
-    [DirMatcher('/ep/beta-account/'), forward(pro_beta_control)],
     [DirMatcher('/ep/pro-signup/'), forward(pro_signup_control)],
     [DirMatcher('/ep/about/'), forward(aboutcontrol)],
     [DirMatcher('/ep/admin/'), forward(admincontrol)],
     [DirMatcher('/ep/connection-diagnostics/'), forward(connection_diagnostics_control)],
     [DirMatcher('/ep/loadtest/'), forward(loadtestcontrol)],
-    [DirMatcher('/ep/tpne/'), forward(pne_tracker_control)],
     [DirMatcher('/ep/pro-account/'), forward(global_pro_account_control)],
     [/^\/ep\/pad\/history\/(\w+)\/(.*)$/, historycontrol.render_history],
     [PrefixMatcher('/ep/pad/slider/'), pad_control.render_slider],

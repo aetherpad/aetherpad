@@ -27,7 +27,6 @@ import("etherpad.utils.*");
 import("etherpad.pro.pro_accounts");
 import("etherpad.pro.domains");
 
-import("etherpad.control.pro_beta_control");
 import("etherpad.control.pro.admin.account_manager_control");
 
 import("etherpad.helpers");
@@ -67,21 +66,6 @@ function _inf(id, label, type) {
 }
 
 function render_main_get() {
-  // observe activation code
-  if (request.params.sc) {
-    getSession().betaActivationCode = request.params.sc;
-    response.redirect(request.path);
-  }
-
-  // validate activation code
-  var activationCode = getSession().betaActivationCode;
-  var err = pro_beta_control.isValidCode(activationCode);
-  if (err) {
-    renderNoticeString(DIV({style: "border: 1px solid red; background: #fdd; font-weight: bold; padding: 1em;"},
-      err));
-    response.stop();
-  }
-
   // serve activation page
   renderFramed('main/pro_signup_body.ejs', {
     errorDiv: _errorDiv,
@@ -101,13 +85,6 @@ function render_main_post() {
   var subdomain = trim(String(request.params.subdomain).toLowerCase());
   var fullName = request.params.fullName;
   var email = trim(request.params.email);
-
-  // validate activation code
-  var activationCode = getSession().betaActivationCode;
-  var err = pro_beta_control.isValidCode(activationCode);
-  if (err) {
-    resonse.write(err);
-  }
 
   /*
   var password = request.params.password;
@@ -157,9 +134,6 @@ function render_main_post() {
       c[domainId] = true;
     });
     ok = true;
-    if (activationCode) {
-      pro_beta_control.notifyActivated(activationCode);
-    }
   });
 
   if (ok) {

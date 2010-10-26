@@ -32,7 +32,6 @@ import("etherpad.sessions.getSession");
 import("etherpad.sessions");
 import("etherpad.log");
 import("etherpad.admin.shell");
-import("etherpad.control.pro_beta_control");
 
 import("etherpad.pad.activepads");
 import("etherpad.pad.model");
@@ -72,9 +71,7 @@ var _mainLinks = [
   ['flows', 'Flows (warning: slow)'],
   ['diagnostics', 'Pad Connection Diagnostics'],
   ['cachebrowser', 'Cache Browser'],
-  ['pne-tracker', 'PNE Tracking Stats'],
   ['pro-domain-accounts', 'Pro Domain Accounts'],
-  ['beta-valve', 'Beta Valve'],
   ['reset-subscription', "Reset Subscription"]
 ];
 
@@ -830,71 +827,6 @@ function render_cachebrowser() {
   response.write(d);
 }
 
-function render_pne_tracker_get() {
-  var data = sqlobj.selectMulti('pne_tracking_data', {}, {});
-  data.sort(function(x, y) { return cmp(y.date, x.date); });
-
-  var t = TABLE();
-
-  var headrow = TR();
-  ['date', 'remote host', 'keyHash', 'name', 'value'].forEach(function(x) {
-    headrow.push(TH({align: "left", style: "padding: 0 6px;"}, x));
-  });
-  t.push(headrow);
-
-  data.forEach(function(d) {
-    var tr = TR();
-
-    tr.push(TD(d.date.toString().split(' ').slice(0,5).join('-')));
-
-    if (d.remoteIp) {
-      tr.push(TD(netutils.getHostnameFromIp(d.remoteIp) || d.remoteIp));
-    } else {
-      tr.push(TD("-"));
-    }
-
-    if (d.keyHash) {
-      tr.push(TD(A({href: '/ep/admin/pne-tracker-lookup-keyhash?hash='+d.keyHash}, d.keyHash)));
-    } else {
-      tr.push(TD("-"));
-    }
-
-    tr.push(TD(d.name));
-    tr.push(TD(d.value));
-
-    t.push(tr);
-  });
-
-  response.write(HTML(HEAD(html("<style>td { border-bottom: 1px solid #ddd; border-right: 1px solid #ddd; padding: 0 6px; } \n tr:hover { background: #ffc; }</style>"),
-    BODY({style: "font-family: monospace; font-size: 12px;"}, t))));
-}
-
-function render_pne_tracker_lookup_keyhash_get() {
-  var hash = request.params.hash;
-  // brute force it
-  var allLicenses = sqlobj.selectMulti('eepnet_signups', {}, {});
-  var record = null;
-  var i = 0;
-  while (i < allLicenses.length && record == null) {
-    var d = allLicenses[i];
-    if (md5(d.licenseKey).substr(0, 16) == hash) {
-      record = d;
-    }
-    i++;
-  }
-  if (!record) {
-    response.write("Not found. Perhaps this was a test download from local development, or a paid customer whose licenses we don't currently look through on this page.");
-  } else {
-    var kl = keys(record).sort();
-    var t = TABLE();
-    kl.forEach(function(k) {
-      t.push(TR(TH({align: "right"}, k+":"),
-                TD({style: "padding-left: 1em;"}, record[k])));
-    });
-    response.write(HTML(BODY(DIV({style: "font-family: monospace;"},
-      DIV(H1("Trial Signup Record:")), t))));
-  }
-}
 
 function render_pro_domain_accounts() {
   var accounts = sqlobj.selectMulti('pro_accounts', {}, {});
@@ -920,88 +852,6 @@ function render_pro_domain_accounts() {
   b.push(t);
 
   response.write(HTML(b));
-}
-
-
-function render_beta_valve_get() {
-  var d = DIV(
-    P("Beta Valve Status: ",
-      (pro_beta_control.isValveOpen() ?
-        SPAN({style: "color: green;"}, B("OPEN")) :
-        SPAN({style: "color: red;"}, B("CLOSED")))),
-    P(FORM({action: '/ep/admin/beta-valve-toggle', method: "post"},
-      BUTTON({type: "submit"}, "Toggle"))));
-
-  var t = TABLE({border: 1, cellspacing: 0, cellpadding: 4, style: "font-family: monospace;"});
-  var signupList = sqlobj.selectMulti('pro_beta_signups', {}, {});
-  signupList.sort(function(a, b) {
-    return cmp(b.signupDate, a.signupDate);
-  });
-
-  d.push(HR());
-
-  if (getSession().betaAdminMessage) {
-    d.push(DIV({style: "border: 1px solid #ccc; padding: 1em; background: #eee;"},
-            getSession().betaAdminMessage));
-    delete getSession().betaAdminMessage;
-  }
-
-  d.push(P(signupList.length + " beta signups"));
-
-  d.push(FORM({action: '/ep/admin/beta-invite-multisend', method: 'post'},
-      P("Send ", INPUT({type: 'text', name: 'count', size: 3}), " invites."),
-      INPUT({type: "submit"})));
-
-  t.push(TR(TH("id"), TH("email"), TH("signupDate"),
-            TH("activationDate"), TH("activationCode"), TH(' ')));
-
-  signupList.forEach(function(s) {
-    var tr = TR();
-    tr.push(TD(s.id),
-            TD(s.email),
-            TD(s.signupDate),
-            TD(s.isActivated ? s.activationDate : "-"),
-            TD(s.activationCode));
-    if (!s.activationCode) {
-      tr.push(TD(FORM({action: '/ep/admin/beta-invite-send', method: 'post'},
-                INPUT({type: 'hidden', name: 'id', value: s.id}),
-                INPUT({type: 'submit', value: "Send Invite"}))));
-    } else {
-      tr.push(TD(' '));
-    }
-    t.push(tr);
-  });
-  d.push(t);
-  response.write(d);
-}
-
-function render_beta_valve_toggle_post() {
-  pro_beta_control.toggleValve();
-  response.redirect('/ep/admin/beta-valve');
-}
-
-function render_beta_invite_send_post() {
-  var id = request.params.id;
-  pro_beta_control.sendInvite(id);
-  response.redirect('/ep/admin/beta-valve');
-}
-
-function render_beta_invite_multisend_post() {
-  var count = request.params.count;
-  var signupList = sqlobj.selectMulti('pro_beta_signups', {}, {});
-  signupList.sort(function(a, b) {
-    return cmp(a.signupDate, b.signupDate);
-  });
-  var sent = 0;
-  for (var i = 0; ((i < signupList.length) && (sent < count)); i++) {
-    var record = signupList[i];
-    if (!record.activationCode) {
-      pro_beta_control.sendInvite(record.id);
-      sent++;
-    }
-  }
-  getSession().betaAdminMessage = (sent+" invites sent.");
-  response.redirect('/ep/admin/beta-valve');
 }
 
 function render_usagestats() {
