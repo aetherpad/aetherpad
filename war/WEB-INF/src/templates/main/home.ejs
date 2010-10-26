@@ -12,23 +12,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */ %><% helpers.setHtmlTitle("EtherPad: Open-Sourced!"); %>
 
-<% helpers.includeCss("home-opensource.css"); %>
+<% helpers.includeCss("home.css"); %>
 
 <div id="home">
-  <div id="title">
-    EtherPad: Open-Sourced!
+
+  <div id="heading">
+    <h1>Aetherpad</h1>
+    <div id="subtitle"><a href="http://github.com/aetherpad/aetherpad">EtherPad</a>
+      Running on <a href="http://code.google.com/appengine/">Google App Engine</a>.
+    </div>
   </div>
 
-  <div>
-    <a id="home-newpad" href="/ep/pad/newpad">
-      Create new pad
-    </a>
-    <!--
-    <a id="home-newsite" href="ep/pro-signup/">
-      Create team site
-    </a>
-    -->
+  <div id="buttons">
+    <a class="button" href="/ep/pad/newpad">Create new pad</a>
+    <a class="button" href="/ep/pro-signup/">Create a team site</a>
   </div>
+
+  <div class="clear"><!-- --></div>
+
+  <div id="footer">
+    <a href="http://code.google.com/appengine/">
+      <img src="http://code.google.com/appengine/images/appengine-noborder-120x30.gif"
+          alt="Powered by Google App Engine" />
+    </a>
+  </div>
+
 </div>
 
 
