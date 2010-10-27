@@ -60,8 +60,6 @@ jimport("java.lang.System.out.println");
 
 serverhandlers.startupHandler = function() {
   // Order matters.
-  checkSystemRequirements();
-
   log.onStartup();
   statistics.onStartup();
   pad_migrations.onStartup();
@@ -202,20 +200,6 @@ serverhandlers.sarsHandler = function(str) {
   }
   return 'UNKNOWN_MESSAGE_TYPE';
 };
-
-//----------------------------------------------------------------
-// checkSystemRequirements()
-//----------------------------------------------------------------
-function checkSystemRequirements() {
-  var jv = Packages.java.lang.System.getProperty("java.version");
-  jv = +(String(jv).split(".").slice(0,2).join("."));
-  if (jv < 1.6) {
-    println("Error: EtherPad requires JVM 1.6 or greater.");
-    println("Your version of the JVM is: "+jv);
-    println("Aborting...");
-    Packages.java.lang.System.exit(1);
-  }
-}
 
 function checkRequestIsWellFormed() {
   // We require the "host" field to be present.
