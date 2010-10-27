@@ -43,8 +43,9 @@ object ExceptionUtils {
     stackTrace(
       if (e.getCause() == null) e else e.getCause(),
       new StackTraceManipulator {
-        override def filter(elt: StackTraceElement) = 
-          elt.getFileName().endsWith(".js") && elt.getLineNumber() >= 0;
+        override def filter(elt: StackTraceElement) =
+          ((elt.getFileName() ne null) &&
+           elt.getFileName().endsWith(".js") && elt.getLineNumber() >= 0);
         override def map(elt: StackTraceElement) = 
           "&nbsp; &nbsp; &nbsp; at: "+elt.getFileName()+":"+elt.getLineNumber()+"<br>"
       });
