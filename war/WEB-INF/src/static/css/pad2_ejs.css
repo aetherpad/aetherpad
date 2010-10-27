@@ -7,7 +7,7 @@ h1, h2, h3, h4, h5, h6 { font-size: 100%; font-weight: normal; font-style: norma
 
 html { font-size: 62.5%; }
 
-body { background: #ebebeb url(/static/img/jun09/pad/backgrad.gif) repeat-x left top; }
+body { background: #ebebeb url(/static+/img/jun09/pad/backgrad.gif) repeat-x left top; }
 body, textarea { font-family: Arial, sans-serif; }
 
 #padpage { margin-left: auto; margin-right: auto; width: 900px; }
@@ -16,27 +16,27 @@ body.fullwidth #padpage { width: auto; margin-left: 6px; margin-right: 6px; }
 body.squish1width #padpage { width: 800px; }
 body.squish2width #padpage { width: 700px; }
 
-#topbar { height: 25px; background: #326cbd url(/static/img/jun09/pad/padtopback2.gif) repeat-x left top;
+#topbar { height: 25px; background: #326cbd url(/static+/img/jun09/pad/padtopback2.gif) repeat-x left top;
   position: relative; }
 
 #topbarleft { float: left; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat left top; width: 5px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat left top; width: 5px; }
 #topbarright { float: right; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat right top; width: 5px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat right top; width: 5px; }
 
-.propad #topbar { background: #2c2c2c url(/static/img/jun09/pad/protop.gif) repeat-x 0 -25px; }
-.propad #topbarleft { background: url(/static/img/jun09/pad/protop.gif) no-repeat left top; }
-.propad #topbarright { background: url(/static/img/jun09/pad/protop.gif) no-repeat right top; }
+.propad #topbar { background: #2c2c2c url(/static+/img/jun09/pad/protop.gif) repeat-x 0 -25px; }
+.propad #topbarleft { background: url(/static+/img/jun09/pad/protop.gif) no-repeat left top; }
+.propad #topbarright { background: url(/static+/img/jun09/pad/protop.gif) no-repeat right top; }
   
 /*
 a#topbarnewpad { display: block; float: left; position: relative; top: 4px; width: 94px;
   height: 0; padding-top: 26px; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat -5px -4px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat -5px -4px; }
 a#topbarnewpad:focus { outline: 0; }
 
 a#topbarfullwidth { display: block; float: right; position: relative; top: 2px; width: 107px;
   height: 0; padding-top: 27px; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat -788px -2px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat -788px -2px; }
 a#topbarfullwidth:focus { outline: 0; }
 */
 
@@ -47,15 +47,15 @@ a#backtoprosite, #accountnav {
 a#backtoprosite, #accountnav a { color: #cde7ff; text-decoration: underline; }
 
 a#backtoprosite { padding-left: 20px; left: 6px;
-  background: url(/static/img/jun09/pad/protop.gif) no-repeat -5px -6px; }
+  background: url(/static+/img/jun09/pad/protop.gif) no-repeat -5px -6px; }
 #accountnav { right: 10px; color: #fff; }
   
 #topbarcenter { margin-left: 150px; margin-right: 150px; }
 a#topbaretherpad { margin-left: auto; margin-right: auto; display: block; width: 103px;
   position: relative; top: 3px; height: 0; padding-top: 20px;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat -397px -3px; overflow: hidden; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat -397px -3px; overflow: hidden; }
 
-.propad a#topbaretherpad { background: url(/static/img/jun09/pad/protop.gif) no-repeat -397px -3px; }
+.propad a#topbaretherpad { background: url(/static+/img/jun09/pad/protop.gif) no-repeat -397px -3px; }
 
 #specialkeyarea { top: 5px; left: 250px; color: yellow; font-weight: bold;
   font-size: 1.5em; position: absolute; }
@@ -76,23 +76,23 @@ a#hidetopmsg { position: absolute; right: 5px; bottom: 5px; }
   background: #ffc; padding: 0.6em; font-size: 1.2em; margin-top: 6px; }
 
 #docbar { margin-top: 6px; height: 30px; position: relative; zoom: 1;
-  background: #fbfbfb url(/static/img/jun09/pad/padtopback2.gif) repeat-x 0 -31px; }
+  background: #fbfbfb url(/static+/img/jun09/pad/padtopback2.gif) repeat-x 0 -31px; }
 
 #docbarleft { position: absolute; left: 0; top: 0; height: 100%;
   overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat left -31px; width: 7px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat left -31px; width: 7px; }
 
 <% function docbarButton(name, width, imgleft, posright, hoverimgleft, openimgleft) {
   return ("#docbar$name$-outer { width: "+width+"px; position: absolute; height: 30px; top: 0; right: "+posright+"px; "+
-  "background: url(/static/img/jun09/pad/padtop5.gif) no-repeat "+(-imgleft)+"px -31px; "+
+  "background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat "+(-imgleft)+"px -31px; "+
   "/* avoid IE flicker using double background */ }"+
   "a#docbar$name$ { display: block; height: 0; padding-top: 30px; position: absolute; width: 100%; "+
-  "overflow: hidden; background: url(/static/img/jun09/pad/padtop5.gif) no-repeat "+(-imgleft)+"px -31px; "+
+  "overflow: hidden; background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat "+(-imgleft)+"px -31px; "+
   "z-index: 53; /* > .dbpanel-wrapper */} "+
   "a#docbar$name$:focus { outline: 0; } "+
-  "a#docbar$name$:hover { background: url(/static/img/jun09/pad/docbarstates3.png) no-repeat "+(-hoverimgleft)+"px 0; } "+
+  "a#docbar$name$:hover { background: url(/static+/img/jun09/pad/docbarstates3.png) no-repeat "+(-hoverimgleft)+"px 0; } "+
   ".docbar$name$-opening a#docbar$name$, .docbar$name$-opening a#docbar$name$:hover, .docbar$name$-closing a#docbar$name$, .docbar$name$-closing a#docbar$name$:hover, .docbar$name$-open a#docbar$name$, .docbar$name$-open a#docbar$name$:hover { "+
-  "background: url(/static/img/jun09/pad/docbarstates3.png) no-repeat "+(-openimgleft)+"px 0; } "+
+  "background: url(/static+/img/jun09/pad/docbarstates3.png) no-repeat "+(-openimgleft)+"px 0; } "+
   "a#docbar$name$:hover, .docbar$name$-closing a#docbar$name$ { padding-top: 29px; } "+
   ".docbar$name$-opening a#docbar$name$, .docbar$name$-opening a#docbar$name$:hover { "+
   "/* opening or closing: link covers gray line below it */ "+
@@ -109,10 +109,10 @@ a#hidetopmsg { position: absolute; right: 5px; bottom: 5px; }
 <%= docbarButton("security", 85, 353, 462, 489, 489) %>
 
 #docbarslider-outer { width: 104px; position: absolute; height: 30px; top: 0; right: 0;
-  background: url(/static/img/jun09/pad/padtop5.gif) no-repeat -796px -31px;
+  background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat -796px -31px;
   /* avoid IE flicker using double background */ }
 a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolute; width: 100%;
-  overflow: hidden; background: url(/static/img/jun09/pad/padtop5.gif) no-repeat -796px -31px; z-index: 53; /* > .dbpanel-wrapper */}
+  overflow: hidden; background: url(/static+/img/jun09/pad/padtop5.gif) no-repeat -796px -31px; z-index: 53; /* > .dbpanel-wrapper */}
 
 <% /* changing the size of the title / rename area means adjusting
    the #docbarpadtitle.width, #padtitlebuttons.left,
@@ -124,7 +124,7 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
   overflow: hidden; text-overflow: ellipsis /*not supported in FF*/;
   white-space:nowrap; }
 .docbar-public #docbarpadtitle { padding-left: 22px;
-  background: url(/static/img/jun09/pad/public.gif) no-repeat left center; }
+  background: url(/static+/img/jun09/pad/public.gif) no-repeat left center; }
   
 #docbarrenamelink { position: absolute; top: 9px;
   font-size: 1.1em; display: none; }
@@ -132,7 +132,7 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
 #docbarrenamelink a:hover { color: #48d; }
 #padtitlebuttons { position: absolute; width: 120px; zoom: 1;
   height: 22px; top: 4px; left: 223px; display: none;
-  background: url(/static/img/jun09/pad/padtop5.gif) -19px -35px; }
+  background: url(/static+/img/jun09/pad/padtop5.gif) -19px -35px; }
 #padtitlesave { position: absolute; display: block;
   height: 0; padding-top: 22px; overflow: hidden;
   width: 49px; left: 0; top: 0; }
@@ -153,19 +153,19 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
 .hidesidebar #padeditor { margin-right: 0; }
 
 #editbar { height: 36px;
-  background: #a5bfe2 url(/static/img/jun09/pad/editbar3.gif) repeat-x left -36px; position: relative; }
+  background: #a5bfe2 url(/static+/img/jun09/pad/editbar3.gif) repeat-x left -36px; position: relative; }
 
 #editbarleft { float: left; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/editbar3.gif) no-repeat left top; width: 3px; }
+  background: url(/static+/img/jun09/pad/editbar3.gif) no-repeat left top; width: 3px; }
 #editbarright { float: right; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/editbar3.gif) no-repeat right top; width: 3px; }
+  background: url(/static+/img/jun09/pad/editbar3.gif) no-repeat right top; width: 3px; }
 
 #editbar a.editbarbutton {
   display: block;
   position: absolute;
   height: 26px;
   width: 26px;
-  background-image: url(/static/img/jun09/pad/editbar3.gif);
+  background-image: url(/static+/img/jun09/pad/editbar3.gif);
   background-color: transparent;
   background-repeat: no-repeat;
   text-decoration: none;
@@ -178,7 +178,7 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
   cursor: auto;
 }
 /*#editbar .divider { position: absolute; width: 4px; height: 15px;
-  background-image: url(/static/img/jun09/pad/editbar3.gif);
+  background-image: url(/static+/img/jun09/pad/editbar3.gif);
   background-color: transparent; background-repeat: no-repeat; }
 #editbar .divider1 { left: 137px; top: 11px; background-position: -137px -11px; }
 #editbar .divider2 { left: 188px; top: 11px; background-position: -188px -11px; }*/
@@ -206,10 +206,10 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
 <%= editbarButton('save', 6, null, true) %>
 
 #editbar #syncstatussyncing { position: absolute; height: 26px; width: 26px;
-  background: url(/static/img/jun09/pad/syncing2.gif) no-repeat center center;
+  background: url(/static+/img/jun09/pad/syncing2.gif) no-repeat center center;
   right: 38px; top: 5px; display: none; }
 #editbar #syncstatusdone { position: absolute; height: 26px; width: 26px;
-  background: url(/static/img/jun09/pad/syncdone.gif) no-repeat center center;
+  background: url(/static+/img/jun09/pad/syncdone.gif) no-repeat center center;
   right: 38px; top: 5px; display: none; }
   
 #editorcontainerbox {
@@ -244,7 +244,7 @@ a#docbarslider { display: block; height: 0; padding-top: 30px; position: absolut
 }
 #myswatch { width: 100%; height: 100%; background: transparent;/*...initially*/ }
 #mycolorpicker {
-  background: url(/static/img/jun09/pad/colorpicker.gif) no-repeat left top;
+  background: url(/static+/img/jun09/pad/colorpicker.gif) no-repeat left top;
   width: 232px; height: 76px;
   position: absolute;
   left: 13px; top: 13px; z-index: 101;
@@ -331,9 +331,9 @@ table#otheruserstable { display: none; }
 .usertdname input.editempty { color: #888; font-style: italic;}
 
 #userlistbuttonarea { height: 28px; position: relative;
-  background: url(/static/img/jun09/pad/inviteshare2.gif) repeat-x 0 0; }
+  background: url(/static+/img/jun09/pad/inviteshare2.gif) repeat-x 0 0; }
 #sharebutton {
-  background: url(/static/img/jun09/pad/inviteshare2.gif) no-repeat 0 -31px;
+  background: url(/static+/img/jun09/pad/inviteshare2.gif) no-repeat 0 -31px;
   position: absolute; display: block; top: 3px; padding-top: 23px;
   height: 0; overflow: hidden; width: 96px; left: 96px; }
 
@@ -349,7 +349,7 @@ table#otheruserstable { display: none; }
 .guestprompt a { margin: 0 0.5em; }
 
 #hdraggie {
-  background: url(/static/img/jun09/pad/hdraggie.gif) repeat-x center top;
+  background: url(/static+/img/jun09/pad/hdraggie.gif) repeat-x center top;
   height: 10px; cursor: S-resize; }
 
 #padchat { border: 1px solid #c4c4c4; }
@@ -391,10 +391,10 @@ table#otheruserstable { display: none; }
   position: relative; width: 100%; height: 100%; overflow: hidden;
 }
 .cboxconnecting #connectionboxinner {
-  background: #ffd url(/static/img/jun09/pad/connectingbar.gif) no-repeat center 60px;
+  background: #ffd url(/static+/img/jun09/pad/connectingbar.gif) no-repeat center 60px;
 }
 .cboxreconnecting #connectionboxinner {
-  background: #fed url(/static/img/jun09/pad/connectingbar.gif) no-repeat center 60px;
+  background: #fed url(/static+/img/jun09/pad/connectingbar.gif) no-repeat center 60px;
 }
 .cboxdisconnected #connectionboxinner {
   background: #fdd;
@@ -498,27 +498,27 @@ table#otheruserstable { display: none; }
   width: 100%; height: 100%; position: absolute; overflow: hidden; top: -10px; }
 
 .dbpanel-top { position: absolute; top: 0; width: 100%;
-  height: 400px; background-image: url(/static/img/jun09/pad/docpanelmiddle2.png);
+  height: 400px; background-image: url(/static+/img/jun09/pad/docpanelmiddle2.png);
   background-position: left top; }
 
 .dbpanel-bottom { position: absolute; height: 400px;
   bottom: -390px; width: 100%;
-  background-image: url(/static/img/jun09/pad/docpanelmiddle2.png);
+  background-image: url(/static+/img/jun09/pad/docpanelmiddle2.png);
   background-position: left top;
 }
 
 * html .dbpanel-top, * html .dbpanel-bottom { /* for IE 6+ */
   background-color: transparent;
-  background-image: url(/static/img/apr09/blank.gif);
+  background-image: url(/static+/img/apr09/blank.gif);
   /* scale the image instead of repeating, but it amounts to the same */
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/img/jun09/pad/docpanelmiddle2.png", sizingMethod="scale");
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static+/img/jun09/pad/docpanelmiddle2.png", sizingMethod="scale");
 }
 
 .dbpanel-leftedge, .dbpanel-rightedge, .dbpanel-botleftcorner, .dbpanel-botrightcorner {
   position: absolute; 
   background-repeat: no-repeat;
   background-color: transparent;
-  background-image: url(/static/img/jun09/pad/docpaneledge2.png);
+  background-image: url(/static+/img/jun09/pad/docpaneledge2.png);
 }
 
 .dbpanel-leftedge, .dbpanel-rightedge { height: 100%; width: 7px; bottom: 11px; }
@@ -532,9 +532,9 @@ table#otheruserstable { display: none; }
 
 * html .dbpanel-leftedge, * html .dbpanel-rightedge, * html .dbpanel-botleftcorner, * html .dbpanel-botrightcorner {
   background-color: transparent;
-  background-image: url(/static/img/apr09/blank.gif);
+  background-image: url(/static+/img/apr09/blank.gif);
   /* crop the image */
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/img/jun09/pad/docpaneledge2.png", sizingMethod="crop");
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static+/img/jun09/pad/docpaneledge2.png", sizingMethod="crop");
 }
 * html .dbpanel-leftedge, * html .dbpanel-botleftcorner { left: -7px;  width: 14px; }
 
@@ -576,7 +576,7 @@ table#otheruserstable { display: none; }
 #exportlinks .exportlink {
   display: block; position: absolute; height: 22px; width: auto;
   background-repeat: no-repeat;
-  background-image: url(/static/img/jun09/pad/fileicons.gif);
+  background-image: url(/static+/img/jun09/pad/fileicons.gif);
   line-height: 22px; padding-left: 22px; padding-right: 2px;
 }
 #exportlinks .n1 { left: 350px; top: 30px; }
@@ -599,11 +599,11 @@ table#otheruserstable { display: none; }
 }
 #savedrevs-scrollleft { height: 100%; width: 14px; position: absolute;
   left: 0; top: 0; cursor: pointer;
-  background: url(/static/img/jun09/pad/savedrevarrows.gif) no-repeat right top;
+  background: url(/static+/img/jun09/pad/savedrevarrows.gif) no-repeat right top;
 }
 #savedrevs-scrollright { height: 100%; width: 14px; position: absolute;
   right: 0; top: 0; cursor: pointer;
-  background: url(/static/img/jun09/pad/savedrevarrows.gif) no-repeat left top;
+  background: url(/static+/img/jun09/pad/savedrevarrows.gif) no-repeat left top;
 }
 #savedrevs-scrolly .disabledscrollleft { background-position: right bottom; }
 #savedrevs-scrolly .disabledscrollright { background-position: left bottom; }
@@ -644,7 +644,7 @@ table#otheruserstable { display: none; }
 #savedrevs-savenow { display: block; position: absolute;
   overflow: hidden; height: 0; padding-top: 24px; width: 81px;
   top: 22px; right: 27px;
-  background: url(/static/img/jun09/pad/savedrevsgfx2.gif) no-repeat 0 0;
+  background: url(/static+/img/jun09/pad/savedrevsgfx2.gif) no-repeat 0 0;
 }
 #savedrevs-savenow:active { background-position: 0 -24px; }
 #savedrevs-close { display: block; position: absolute; right: 7px; bottom: 8px;
@@ -728,7 +728,7 @@ form#reconnectform { display: none; }
 #feedbackbox-hide, #feedbackbox-send, #feedbackbox-back {
   position: absolute; display: block;
   background-repeat: no-repeat;
-  background-image: url(/static/img/jun09/pad/feedbackbox2.gif);
+  background-image: url(/static+/img/jun09/pad/feedbackbox2.gif);
 }
 #feedbackbox-tl { width: <%=feedbackbox.width-8%>px;
   height: <%=feedbackbox.height-8%>px; left: 0; top: 0;
@@ -783,7 +783,7 @@ form#reconnectform { display: none; }
 #sharebox-forms { position: absolute; top: 50px; width: 100%; }
 #sharebox-hide, #sharebox-send {
   position: absolute; background-repeat: no-repeat;
-  background-image: url(/static/img/jun09/pad/sharebox4.gif);
+  background-image: url(/static+/img/jun09/pad/sharebox4.gif);
 }
 #sharebox-hide, #sharebox-send { display: block; }
 #sharebox-hide { width: 22px; height: 22px; right: 9px; top: 7px;
@@ -804,7 +804,7 @@ form#reconnectform { display: none; }
 #sharebox .badresponse { font-weight: bold; color: red; }
 #sharebox-dislink { position: absolute; left: 12px; top: 78px;
   height: 22px; width: 220px; cursor: pointer;
-  background-image: url(/static/img/jun09/pad/sharedistri.gif);
+  background-image: url(/static+/img/jun09/pad/sharedistri.gif);
   background-repeat: no-repeat;
   background-position: 0 5px;
 }
@@ -849,26 +849,26 @@ form#reconnectform { display: none; }
 #bottomarea { height: 28px; overflow: hidden; position: relative;
   font-size: 1.2em; color: #444; }
 #widthprefcheck { position: absolute;
-  background-image: url(/static/img/jun09/pad/layoutbuttons.gif);
+  background-image: url(/static+/img/jun09/pad/layoutbuttons.gif);
   background-repeat: no-repeat; cursor: pointer;
   width: 86px; height: 20px; top: 4px; right: 2px; }
 .widthprefunchecked { background-position: -1px -1px; }
 .widthprefchecked { background-position: -1px -23px; }
 #sidebarcheck { position: absolute;
-  background-image: url(/static/img/jun09/pad/layoutbuttons.gif);
+  background-image: url(/static+/img/jun09/pad/layoutbuttons.gif);
   background-repeat: no-repeat; cursor: pointer;
   width: 86px; height: 20px; top: 4px; right: 90px; }
 .sidebarunchecked { background-position: -1px -45px; }
 .sidebarchecked { background-position: -1px -67px; }
 #feedbackbutton { display: block; position: absolute; width: 68px;
   height: 0; padding-top: 17px; overflow: hidden;
-  background: url(/static/img/jun09/pad/bottomareagfx.gif);
+  background: url(/static+/img/jun09/pad/bottomareagfx.gif);
   top: 5px; right: 220px;
 }
 
 #modaloverlay {
   z-index: 500; display: none;
-  background-image: url(/static/img/jun09/pad/overlay2.png);
+  background-image: url(/static+/img/jun09/pad/overlay2.png);
   background-repeat: repeat-both;
   width: 100%; position: absolute;
   height: 400px; left: 0; top: 0;
@@ -879,5 +879,5 @@ form#reconnectform { display: none; }
   background-image: none;
   background-repeat: no-repeat;
   /* scale the image */
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/img/jun09/pad/overlay2.png", sizingMethod="scale");
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static+/img/jun09/pad/overlay2.png", sizingMethod="scale");
 }

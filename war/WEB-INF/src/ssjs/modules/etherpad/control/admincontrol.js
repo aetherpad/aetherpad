@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,6 @@ import("funhtml.*");
 import("stringutils.{html,sprintf,startsWith,md5}");
 import("jsutils.*");
 import("sqlbase.sqlbase");
-import("sqlbase.sqlcommon");
 import("sqlbase.sqlobj");
 import("varz");
 import("comet");
@@ -61,7 +60,6 @@ function _isAuthorizedAdmin() {
 var _mainLinks = [
   ['padinspector', 'Pad Inspector'],
   ['dashboard', 'Dashboard'],
-  ['config', 'appjet.config'],
   ['shell', 'Shell'],
   ['timings', 'timing data'],
   ['broadcast-message', 'Pad Broadcast'],
@@ -150,22 +148,6 @@ function render_main() {
   response.write(HTML(_commonHead(), BODY(div)));
 }
 
-//----------------------------------------------------------------
-
-function render_config() {
-
-  vars = [];
-  eachProperty(appjet.config, function(k,v) {
-    vars.push(k);
-  });
-
-  vars.sort();
-
-  response.setContentType('text/plain; charset=utf-8');
-  vars.forEach(function(v) {
-    response.write("appjet.config."+v+" = "+appjet.config[v]+"\n");
-  });
-}
 
 //----------------------------------------------------------------
 
@@ -479,7 +461,7 @@ function render_padinspector_get() {
     ].join('\n')));
 
     response.write(HTML(
-      HEAD(SCRIPT({type: 'text/javascript', src: '/static/js/jquery-1.3.2.js?'+(+(new Date))})),
+      HEAD(SCRIPT({type: 'text/javascript', src: '/static+/js/jquery-1.3.2.js?'+(+(new Date))})),
       BODY(div, script)));
   }, "r");
 }
@@ -781,17 +763,6 @@ function render_diagnostics() {
 
 
 //----------------------------------------------------------------
-
-import("etherpad.pad.pad_migrations");
-
-function render_padmigrations() {
-  var residue = (request.params.r || 0);
-  var modulus = (request.params.m || 1);
-  var name = (request.params.n || (residue+"%"+modulus));
-  pad_migrations.runBackgroundMigration(residue, modulus, name);
-  response.write("done");
-  return true;
-}
 
 // TODO: add ability to delete entries?
 // TODO: show sizes?

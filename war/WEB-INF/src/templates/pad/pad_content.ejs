@@ -45,7 +45,7 @@ limitations under the License. */ %><%
    r.push('<table cellspacing="0" cellpadding="0" border="0">');
    r.push('<tr>');
    r.push('<td class="exportpic" valign="middle">');
-   r.push(aStart, '<img alt="" src="/static/img/may09/'+type+'.gif" />', '</a>');
+   r.push(aStart, '<img alt="" src="/static+/img/may09/'+type+'.gif" />', '</a>');
    r.push('</td>');
    r.push('<td class="labelcell" valign="middle">');
    r.push(aStart, label, '</a>');
@@ -56,7 +56,7 @@ limitations under the License. */ %><%
    if (requiresOffice) {
      r.push('<td class="exportspinner" ');
      r.push('id="exportspinner', type, '"');
-     r.push(' valign="middle"><img alt="" src="/static/img/misc/status-ball.gif" /></td>');
+     r.push(' valign="middle"><img alt="" src="/static+/img/misc/status-ball.gif" /></td>');
    }	 
    r.push('</tr>');
    r.push('</table>');
@@ -220,8 +220,8 @@ limitations under the License. */ %><%
  					<input type="hidden" name="padId" value="<%= encodeURIComponent(padId) %>" />
  					<span class="nowrap">
 						<input type="submit" name="submit" value="Import Now" disabled="disabled" id="importsubmitinput" />
-						<img alt="" id="importstatusball" src="/static/img/misc/status-ball.gif" align="bottom" />
-						<img alt="" id="importarrow" src="/static/img/may09/leftarrow.gif" align="bottom" />
+						<img alt="" id="importstatusball" src="/static+/img/misc/status-ball.gif" align="bottom" />
+						<img alt="" id="importarrow" src="/static+/img/may09/leftarrow.gif" align="bottom" />
 					</span>
 				</div>
  	  	</form>
@@ -278,7 +278,7 @@ limitations under the License. */ %><%
 
 <div id="appjetfooter">
   Powered by <a target="_blank" href="/ep/about/appjet">AppJet</a>
-  <img id="plane" src="/static/img/tinyplane.gif" alt="AppJet" />
+  <img id="plane" src="/static+/img/tinyplane.gif" alt="AppJet" />
 </div><!-- /appjetfooter -->
 
 <form id="reconnect"

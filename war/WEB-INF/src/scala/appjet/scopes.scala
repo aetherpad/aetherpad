@@ -15,22 +15,22 @@ object ScopeManager {
   def postamble = Libraries.get("WEB-INF/src/ssjs/postamble.js");
   
   def withScope(block: Scope => Unit) = synchronized {
-    try {
-      if (cachedScope.isEmpty) {
-        cachedScope = Some(new Scope(
-          BodyLock.subScope(mainGlobalRhinoScope),
-          scope => ScopeManager.main.executable.get.execute(scope)));
-      }
-      block(cachedScope.get);      
-    } finally {
-      Libraries.reset();
-      cachedScope = None;
+    Libraries.checkAllModifications();
+    if (cachedScope.isEmpty) {
+      cachedScope = Some(new Scope(
+        BodyLock.subScope(mainGlobalRhinoScope),
+        scope => ScopeManager.main.executable.get.execute(scope)));
     }
+    block(cachedScope.get);
   }
 
   def withTransientScope[E](init: Scriptable => Unit, main: Scope => E): E = {
     val scope = new Scope(BodyLock.subScope(mainGlobalRhinoScope), init);
     main(scope);
+  }
+
+  def reset() = synchronized {
+    cachedScope = None;
   }
 }
 

@@ -23,7 +23,8 @@ var COMETPATH = "/comet";
 var COLOR_PALETTE = ['#ffc6c6','#ffe2bf','#fffcbf','#cbffb3','#b3fff1','#c6e7ff','#dcccff','#ffd9fb'];
 
 function isProduction() {
-  return false;
+  // See: http://code.google.com/appengine/docs/java/runtime.html
+  return (java.lang.System.getProperty("com.google.appengine.runtime.environment") == "Production");
 }
 
 var SUPERDOMAINS = {
@@ -31,9 +32,6 @@ var SUPERDOMAINS = {
   'localhost': true,
   'etherpad.com': true
 };
-
-var PNE_RELEASE_VERSION = "1.1.3";
-var PNE_RELEASE_DATE = "June 15, 2009";
 
 var PRO_FREE_ACCOUNTS = 1e9;
 

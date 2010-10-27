@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-/** 
+/**
  * This isn't reqlly "SQL" anymore, it's now backed by the AppEngine datastore.
  */
 import("jsutils.*");
-import("sqlbase.sqlcommon");
 import("fastJSON");
 import("timer");
 import("datastore");
@@ -38,10 +37,6 @@ function _makeDatastoreKey(parentKey, tableName, stringKey) {
   return KeyFactory.createKey(parentKey || null, _getKind(tableName), stringKey);
 }
 
-function getRootKey(kind, name) {
-  return _makeDatastoreKey(null, kind, name);
-}
-
 /**
  * Retrieves a JavaScript object or value from a table.  Returns undefined
  * if there is no mapping for the given string key.  Requires that the table
@@ -57,15 +52,14 @@ function getJSON(tableName, stringKey) {
     var result = ds.get(txn, _makeDatastoreKey(parentKey, tableName, stringKey));
     if (result) {
       return fastJSON.parse(String(result.getProperty("json")))['x'];
-    } else {
-      return undefined;
     }
   } catch (e) {
-    if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
-      return undefined;
+    if (!(e.javaException instanceof
+          com.google.appengine.api.datastore.EntityNotFoundException)) {
+      throw e;
     }
-    throw e;
   }
+  return undefined;
 }
 
 function getAllJSON(tableName, start, count) {
@@ -77,13 +71,13 @@ function getAllJSON(tableName, start, count) {
   var query = new Query(_getKind(tableName), parentKey);
   var i = ds.prepare(txn, query).asIterator(
     FetchOptions.Builder.withOffset(start).limit(count));
-  
+
   var results = [];
   if (i) {
     while (i.hasNext()) {
       var next = i.next();
       results.push({
-        id: next.getKey().getName(), 
+        id: next.getKey().getName(),
         value: fastJSON.parse(String(next.getProperty("json")))['x']
       });
     }
@@ -99,7 +93,7 @@ function getAllJSONKeys(tableName) {
 
   var query = (new Query(_getKind(tableName), parentKey)).setKeysOnly(true);
   var i = ds.prepare(txn, query).asIterator();
-  
+
   var results = [];
   if (i) {
     while (i.hasNext()) {
@@ -164,7 +158,7 @@ function putConsecutiveStringArrayElements(tableName, stringKey, startN, valueAr
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
-  
+
   for (var i = 0; i < valueArray.length; ++i) {
     var entity = new Entity(_generateStringArrayKey(parentKey, tableName, stringKey, startN+i))
     entity.setUnindexedProperty("value", String(valueArray[i]));
@@ -181,13 +175,13 @@ function putDictStringArrayElements(tableName, stringKey, nToValue) {
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
-  
+
   var nArray = [];
   for(var n in nToValue) {
     nArray.push(n);
   }
   nArray.sort(function(a,b) { return Number(a) - Number(b); });
-  
+
   nArray.forEach(function(n) {
     var entity = new Entity(_generateStringArrayKey(parentKey, tableName, stringKey, n))
     entity.setUnindexedProperty("value", String(nToValue[n]));
@@ -206,9 +200,17 @@ function getStringArrayElement(tableName, stringKey, n) {
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
 
-  var result = ds.get(txn, _generateStringArrayKey(parentKey, tableName, stringKey, n));
-  if (result && result.getProperty("value")) {
-    return String(result.getProperty("value"));
+  try {
+    var result = ds.get(txn,
+                        _generateStringArrayKey(parentKey, tableName, stringKey, n));
+    if (result && result.getProperty("value")) {
+      return String(result.getProperty("value"));
+    }
+  } catch (e) {
+    if (!(e.javaException instanceof
+          com.google.appengine.api.datastore.EntityNotFoundException)) {
+      throw e;
+    }
   }
   return undefined;
 }
@@ -250,7 +252,7 @@ function clearStringArray(tableName, stringKey) {
   query.addFilter("__key__", Query.FilterOperator.LESS_THAN_OR_EQUAL, keyString+"\ufffd");
   query.setKeysOnly();
   query = ds.prepare(transaction, query);
-  
+
   ds["delete"](txn, new java.lang.Iterable({
     iterator: function() { return new java.lang.Iterator({
       underlying: query.asIterator(),

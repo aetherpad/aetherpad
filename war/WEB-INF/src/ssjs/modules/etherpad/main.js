@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@ import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 import("exceptionutils");
 import("fastJSON");
 import("jsutils.*");
-import("sqlbase.sqlcommon");
 import("stringutils");
 
 import("etherpad.globals.*");
@@ -53,7 +52,6 @@ import("etherpad.collab.readonly_server");
 import("etherpad.collab.genimg");
 import("etherpad.pad.model");
 import("etherpad.pad.dbwriter");
-import("etherpad.pad.pad_migrations");
 import("etherpad.pad.noprowatcher");
 
 jimport("java.lang.System.out.println");
@@ -62,7 +60,6 @@ serverhandlers.startupHandler = function() {
   // Order matters.
   log.onStartup();
   statistics.onStartup();
-  pad_migrations.onStartup();
 //  model.onStartup();
   collab_server.onStartup();
   pad_control.onStartup();
@@ -82,7 +79,6 @@ serverhandlers.shutdownHandler = function() {
 
   log.callCatchingExceptions(writeSessionsToDisk);
   log.callCatchingExceptions(dbwriter.onShutdown);
-  log.callCatchingExceptions(sqlcommon.onShutdown);
   log.callCatchingExceptions(pro_pad_editors.onShutdown);
 };
 
@@ -222,10 +218,6 @@ function checkHost() {
   return;
 
 
-  // if (appjet.config['etherpad.skipHostnameCheck'] == "true") {
-  //   return;
-  // }
-  // 
 
   // we require the domain to either be <superdomain> or a pro domain request.
   if (SUPERDOMAINS[request.domain]) {
@@ -255,7 +247,7 @@ function checkHTTPS() {
   return;
 
 
-  if (stringutils.startsWith(request.path, "/static/")) { return; }
+  if (stringutils.startsWith(request.path, "/static+/")) { return; }
 
   if (sessions.getSession().disableHttps || request.params.disableHttps) {
     sessions.getSession().disableHttps = true;
@@ -322,10 +314,10 @@ function handlePath() {
   // these paths are handled identically on all sites/subdomains.
   var commonDispatcher = new Dispatcher();
   commonDispatcher.addLocations([
-    ['/favicon.ico', forward(static_control)],
-    ['/robots.txt', forward(static_control)],
-    ['/crossdomain.xml', forward(static_control)],
-    [PrefixMatcher('/static/'), forward(static_control)],
+//    ['/favicon.ico', forward(static_control)],
+//    ['/robots.txt', forward(static_control)],
+//    ['/crossdomain.xml', forward(static_control)],
+    [PrefixMatcher('/static+/'), forward(static_control)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
     [/^\/([^\/]+)$/, pad_control.render_pad],

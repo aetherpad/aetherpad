@@ -48,7 +48,7 @@ limitations under the License. */ %><%
    r.push('<table cellspacing="0" cellpadding="0" border="0">');
    r.push('<tr>');
    r.push('<td class="exportpic" valign="middle">');
-   r.push(aStart, '<img src="/static/img/may09/'+type+'.gif" />', '</a>');
+   r.push(aStart, '<img src="/static+/img/may09/'+type+'.gif" />', '</a>');
    r.push('<td class="labelcell" valign="middle">');
    r.push(aStart, label, '</a>');
    if (title) {
@@ -111,10 +111,10 @@ limitations under the License. */ %><%
 <a class="tlink" href="/ep/pad/view/<%= padId %>/<%= revisionId %>" thref="/ep/pad/view/<%= padId %>/rev.%revision%">Link to this version</a>
 <% if (readOnly === false) { %><br><a class="tlink" href="/ep/pad/view/<%= roPadId %>/<%= revisionId %>" thref="/ep/pad/view/<%= roPadId %>/rev.%revision%">Link to read-only page</a><br><a href="/<%= padId %>">Edit this pad</a><% } %>
 <h2>Download as</h2>
-<img src="/static/img/may09/html.gif"><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=html">HTML</a><br>
-<img src="/static/img/may09/txt.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=txt" >Plain text</a><br>
-<img src="/static/img/may09/doc.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=doc" >Microsoft Word</a><br>
-<img src="/static/img/may09/pdf.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=pdf" >PDF</a>
+<img src="/static+/img/may09/html.gif"><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=html">HTML</a><br>
+<img src="/static+/img/may09/txt.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=txt" >Plain text</a><br>
+<img src="/static+/img/may09/doc.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=doc" >Microsoft Word</a><br>
+<img src="/static+/img/may09/pdf.gif" ><a class="tlink" href="/ep/pad/export/<%= padId %>/<%= revisionId %>?format=html" thref="/ep/pad/export/<%= padId %>/rev.%revision%?format=pdf" >PDF</a>
 
 
 </div>

@@ -20,8 +20,11 @@ import("dispatch.{Dispatcher,PrefixMatcher,forward}");
 import("etherpad.utils.*");
 import("etherpad.globals.*");
 
+jimport("java.lang.System");
+
 function onRequest() {
-  var staticBase = '/static';
+  // path prefix on local file system
+  var staticBase = 'WEB-INF/src/static';
 
   var opts = {cache: isProduction()};
 
@@ -38,16 +41,16 @@ function onRequest() {
   var disp = new Dispatcher();
 
   disp.addLocations([
-    ['/favicon.ico', serveFavicon],
-    ['/robots.txt', serveRobotsTxt],
-    ['/crossdomain.xml', serveCrossDomain],
-    [PrefixMatcher('/static/html/'), serveHtml],
-    [PrefixMatcher('/static/js/'), serveJs],
-    [PrefixMatcher('/static/css/'), serveCss],
-    [PrefixMatcher('/static/swf/'), serveSwf],
-    [PrefixMatcher('/static/zip/'), serveZip],
-    [PrefixMatcher('/static/compressed/'), serveCompressed],
-    [PrefixMatcher('/static/'), serveStaticDir]
+//    ['/favicon.ico', serveFavicon],
+//    ['/robots.txt', serveRobotsTxt],
+//    ['/crossdomain.xml', serveCrossDomain],
+    [PrefixMatcher('/static+/html/'), serveHtml],
+    [PrefixMatcher('/static+/js/'), serveJs],
+    [PrefixMatcher('/static+/css/'), serveCss],
+    [PrefixMatcher('/static+/swf/'), serveSwf],
+    [PrefixMatcher('/static+/zip/'), serveZip],
+    [PrefixMatcher('/static+/compressed/'), serveCompressed],
+    [PrefixMatcher('/static+/'), serveStaticDir]
   ]);
 
   return disp.dispatch();
