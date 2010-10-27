@@ -24,7 +24,7 @@ var COLOR_PALETTE = ['#ffc6c6','#ffe2bf','#fffcbf','#cbffb3','#b3fff1','#c6e7ff'
 
 function isProduction() {
   // See: http://code.google.com/appengine/docs/java/runtime.html
-  return (System.getProperty("com.google.appengine.runtime.environment") == "Production");
+  return (java.lang.System.getProperty("com.google.appengine.runtime.environment") == "Production");
 }
 
 var SUPERDOMAINS = {

@@ -67,7 +67,7 @@ function sendMessage(id, msg) {
   Packages.net.appjet.ajstdlib.Comet.write(id, msg);
 }
 
-function headInclude() { return '<script src="'+appjet.config.cometPrefix+'/js/client.js"></script>'; };
+function headInclude() { return '<script src="'+COMETPATH+'/js/client.js"></script>'; };
 function clientCode() {
   return Packages.net.appjet.ajstdlib.Comet.getClientCode(appjet.context);
 };

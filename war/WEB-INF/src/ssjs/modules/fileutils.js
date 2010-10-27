@@ -22,17 +22,11 @@ jimport("java.io.File",
 	"java.lang.reflect.Array",
 	"java.lang.Byte",
 	"java.io.FileReader",
-	"java.io.BufferedReader",
-	"net.appjet.oui.JarVirtualFile");
+	"java.io.BufferedReader");
 
 function readFileBytes(path) {
   java.lang.System.out.println("reading path: "+path);
   return readRealFileBytes(path);
-  // var jfile = new JarVirtualFile(path);
-  // if (!jfile.exists() || jfile.isDirectory()) {
-  //   throw 'Not a file: '+path;
-  // }
-  // return net.appjet.common.util.BetterFile.getStreamBytes(jfile.openStream());
 }
 
 function readFile(path) {
