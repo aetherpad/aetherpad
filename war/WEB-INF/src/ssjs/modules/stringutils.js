@@ -27,6 +27,8 @@ import("jsutils.{object,eachProperty}");
 
 jimport("java.util.Random");
 jimport("java.lang.System.currentTimeMillis");
+jimport("java.util.zip.GZIPOutputStream");
+jimport("java.io.ByteArrayOutputStream");
 
 
 /**
@@ -389,8 +391,22 @@ function randomHash(len) {
   }
 }
 
+/**
+ * gzip a string or byte array.
+ */
 function gzip(x) {
-  return net.appjet.oui.Util.gzip(x)
+  var baos = new ByteArrayOutputStream();
+  var gzos = new GZIPOutputStream(baos);
+  var bytes;
+  if (typeof(x) == 'string') {
+    bytes = (new java.lang.String(x)).getBytes("UTF-8");
+  } else {
+    // it had better already be a byte array
+    bytes = x;
+  }
+  gzos.write(bytes, 0, bytes.length);
+  gzos.close();
+  return baos.toByteArray();
 }
 
 function isNumeric(x) {
