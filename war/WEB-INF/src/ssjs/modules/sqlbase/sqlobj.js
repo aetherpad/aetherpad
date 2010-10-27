@@ -38,6 +38,13 @@ function _getDatastoreValue(v) {
   }
 }
 
+function _currentParentKey() {
+  var transaction = datastore.getCurrentTransaction() || null;
+  var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  return parentKey;
+}
+
 function _entityToJsObj(entity) {
   var resultObj = {};
   var props = entity.getProperties().entrySet().iterator();
@@ -46,9 +53,35 @@ function _entityToJsObj(entity) {
     resultObj[entry.getKey()] = entry.getValue();
   }
   if (! resultObj.id) {
-    resultObj.id = entity.getKey();
+    var key = entity.getKey();
+    if (key.getName()) {
+      //var currentParent = (_currentParentKey() || null);
+      //var keyParent = (key.getParent() || null);
+      //if (currentParent == keyParent) {
+      resultObj.id = key.getName();
+      //}
+    }
+    if (! resultObj.id) {
+      resultObj.id = key;
+    }
   }
+  //if ((! resultObj.parentName) && entity.getParent()
+  //    && entity.getParent().getName()) {
+  //  resultObj.parentName = entity.getParent().getName();
+  //}
   return resultObj;
+}
+
+function _toKey(kind, id, parentKey) {
+  if (id instanceof Key) {
+    return id;
+  }
+  else if ((typeof id) == 'string') {
+    return KeyFactory.createKey(parentKey, kind, id);
+  }
+  else {
+    return id;
+  }
 }
 
 /**
@@ -63,7 +96,9 @@ function _setEntityProperties(tableName, entity, obj) {
 //    if (! appjet.cache.sqlobj_tables ||
 //        ! appjet.cache.sqlobj_tables[tableName] ||
 //        appjet.cache.sqlobj_tables[tableName].indices[k]) {
+    if (k != 'id') {
       entity.setProperty(k, _getDatastoreValue(obj[k]));
+    }
 //    } else {
 //      entity.setUnindexedProperty(k, _getDatastoreValue(obj[k]));
 //    }
@@ -72,16 +107,20 @@ function _setEntityProperties(tableName, entity, obj) {
 
 /*
  * Inserts the object into the given table, and returns auto-incremented ID if any.
+ * Replaces existing obj with same 'id' property if there is one.
  */
 function insert(tableName, obj) {
+  var kind = _getKind(tableName);
   var ds = datastore.getDatastoreService();
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
+  var key = _toKey(kind, obj.id, parentKey);
 
-  var entity = (parentKey ?
-    new Entity(_getKind(tableName), parentKey) :
-    new Entity(_getKind(tableName)));
+  var entity = (key ? new Entity(key) :
+                (parentKey ?
+                 new Entity(kind, parentKey) :
+                 new Entity(kind)));
   _setEntityProperties(tableName, entity, obj);
 
   return ds.put(txn, entity);
@@ -96,23 +135,25 @@ function insert(tableName, obj) {
  *  Currently only supports string equality of constraints.
  */
 function selectSingle(tableName, constraints) {
+  var kind = _getKind(tableName);
   var ds = datastore.getDatastoreService();
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
+  var selectKey = _toKey(kind, constraints.id, parentKey);
 
-  if (constraints.id instanceof Key) {
+  if (selectKey) {
     try {
-      return _entityToJsObj(ds.get(transaction, constraints.id));
+      return _entityToJsObj(ds.get(transaction, selectKey));
     } catch (e) {
       if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
-        return undefined;
+        return null;
       }
       throw e;
     }
   }
 
-  var query = new Query(_getKind(tableName), parentKey);
+  var query = new Query(kind, parentKey);
   keys(constraints).forEach(function(key) {
     query.addFilter(key, Query.FilterOperator.EQUAL, constraints[key]);
   });
@@ -179,15 +220,18 @@ function selectMulti(tableName, constraints, options) {
 
 /* returns number of rows updated */
 function update(tableName, constraints, obj) {
+  var kind = _getKind(tableName);
   var ds = datastore.getDatastoreService();
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
+  var updateKey = _toKey(kind, constraints.id, parentKey);
 
-  if (constraints.id instanceof Key) {
+  if (updateKey) {
     // this isn't a constrained update, it's a single-object update.
     try {
-      var entity = ds.get(transaction, obj.id);
+      // note that obj.id is ignored; we don't allow changing id via update
+      var entity = ds.get(transaction, updateKey);
       _setEntityProperties(tableName, entity, obj);
       ds.put(transaction, entity);
       return 1;
@@ -209,15 +253,24 @@ function update(tableName, constraints, obj) {
 
 function updateSingle(tableName, constraints, obj) {
   var count = update(tableName, constraints, obj);
-  if (count != 1) {
-    throw Error("save count != 1.  instead, count = "+count);
+  if (count > 1) {
+    throw Error("save count > 1.  instead, count = "+count);
   }
 }
 
 function deleteRows(tableName, constraints) {
+  var kind = _getKind(tableName);
   var ds = datastore.getDatastoreService();
   var transaction = datastore.getCurrentTransaction() || null;
   var txn = transaction ? transaction.underlying : null;
+  var parentKey = transaction ? transaction.other : null;
+  var deleteKey = _toKey(kind, constraints.id, parentKey);
+
+  if (deleteKey) {
+    // single-key delete
+    ds["delete"](transaction, deleteKey);
+    return;
+  }
 
   var matchingEntities =
     _getEntitiesForConstraints(tableName, constraints, {keysOnly: true});

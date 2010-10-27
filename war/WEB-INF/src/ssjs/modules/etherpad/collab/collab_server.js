@@ -72,7 +72,7 @@ function guestKnock(globalPadId, guestId, displayName) {
                     payload: { type: 'GUEST_PROMPT',
                                userId: guestId,
                                displayName: displayName } };
-        sendMessage(connection.connectionId, msg);
+        sendMessage(connection.id, msg);
       }
     });
   });
@@ -206,7 +206,7 @@ function updateClient(pad, connectionId) {
 
 function updatePadClients(pad) {
   _getPadConnections(pad).forEach(function(connection) {
-    updateClient(pad, connection.connectionId);
+    updateClient(pad, connection.id);
   });
 
   readonly_server.updatePadClients(pad);
@@ -283,7 +283,7 @@ function broadcastServerMessage(msgObj) {
   var msg = {type: "SERVER_MESSAGE", payload: msgObj};
   getAllRoomsOfType(PADPAGE_ROOMTYPE).forEach(function(roomName) {
     getRoomConnections(roomName).forEach(function(connection) {
-      sendMessage(connection.connectionId, msg);
+      sendMessage(connection.id, msg);
     });
   });
 }
@@ -415,12 +415,10 @@ function getCollabClientVars(pad) {
 }
 
 function getNumConnections(pad) {
-  /*XXX*/return 0;
   return _getPadConnections(pad).length;
 }
 
 function getConnectedUsers(pad) {
-  /*XXX*/return [];
   var users = [];
   _getPadConnections(pad).forEach(function(connection) {
     users.push(connection.data.userInfo);
@@ -439,7 +437,7 @@ function bootUsersFromPad(pad, reason, userInfoFilter) {
   connections.forEach(function(connection) {
     if ((! userInfoFilter) || userInfoFilter(connection.data.userInfo)) {
       bootedUserInfos.push(connection.data.userInfo);
-      bootConnection(connection.connectionId);
+      bootConnection(connection.id);
     }
   });
   return bootedUserInfos;
@@ -556,16 +554,16 @@ function getRoomCallbacks(roomName) {
   callbacks.introduceUsers =
     function (joiningConnection, existingConnection) {
       // notify users of each other
-      _sendUserInfoMessage(existingConnection.connectionId,
+      _sendUserInfoMessage(existingConnection.id,
                           "USER_NEWINFO",
                           joiningConnection.data.userInfo);
-      _sendUserInfoMessage(joiningConnection.connectionId,
+      _sendUserInfoMessage(joiningConnection.id,
                           "USER_NEWINFO",
                           existingConnection.data.userInfo);
     };
   callbacks.extroduceUsers =
     function (leavingConnection, existingConnection) {
-      _sendUserInfoMessage(existingConnection.connectionId, "USER_LEAVE",
+      _sendUserInfoMessage(existingConnection.id, "USER_LEAVE",
                           leavingConnection.data.userInfo);
     };
   callbacks.onAddConnection =
@@ -604,7 +602,7 @@ function getRoomCallbacks(roomName) {
       var lastRev = data.lastRev;
       var isReconnectOf = data.isReconnectOf;
       var isCommitPending = !! data.isCommitPending;
-      var connectionId = newConnection.connectionId;
+      var connectionId = newConnection.id;
 
       newConnection.data.lastRev = lastRev;
       updateRoomConnectionData(connectionId, newConnection.data);
@@ -668,7 +666,7 @@ function _updateDocumentConnectionUserInfo(pad, socketId, userInfo) {
     updateRoomConnectionData(connectionId, updatingConnection.data);
     _getPadConnections(pad).forEach(function(connection) {
       if (connection.socketId != updatingConnection.socketId) {
-        _sendUserInfoMessage(connection.connectionId,
+        _sendUserInfoMessage(connection.id,
                              "USER_NEWINFO", userInfo);
       }
     });
@@ -684,7 +682,7 @@ function _handleCometMessage(connection, msg) {
   var socketUserId = connection.data.userInfo.userId;
   if (! (socketUserId && _verifyUserId(socketUserId))) {
     // user has signed out or cleared cookies, no longer auth'ed
-    bootConnection(connection.connectionId, "unauth");
+    bootConnection(connection.id, "unauth");
   }
 
   if (msg.type == "USER_CHANGES") {
@@ -729,7 +727,7 @@ function _handleCometMessage(connection, msg) {
         getRoomConnections(connection.roomName).forEach(
           function(conn) {
             if (conn.socketId != connection.socketId) {
-              sendMessage(conn.connectionId,
+              sendMessage(conn.id,
                           {type: "CLIENT_MESSAGE", payload: payload});
             }
           });
