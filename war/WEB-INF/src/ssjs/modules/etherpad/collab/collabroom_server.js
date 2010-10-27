@@ -24,7 +24,7 @@ import("etherpad.log");
 jimport("java.util.concurrent.ConcurrentSkipListMap");
 jimport("java.util.concurrent.CopyOnWriteArraySet");
 import("datastore");
-import("sqlbase.sqlobj");
+import("dsobj");
 
 function onStartup() {
   execution.initTaskThreadPool("collabroom_async", 1);
@@ -50,15 +50,15 @@ function _putConnection(connection) {
       fastJSON.stringify(connection.data);
   }
 
-  sqlobj.insert(_connectionsTable(), connectionDS);
+  dsobj.insert(_connectionsTable(), connectionDS);
 }
 
 function _removeConnection(connection) {
-  sqlobj.deleteRows(_connectionsTable(), {id: connection.id});
+  dsobj.deleteRows(_connectionsTable(), {id: connection.id});
 }
 
 function _updateConnectionData(connectionId, data) {
-  sqlobj.updateSingle(_connectionsTable(),
+  dsobj.updateSingle(_connectionsTable(),
                       {id: connectionId},
                       {data: fastJSON.stringify(data)});
 }
@@ -72,14 +72,14 @@ function _modDSConnection(connection) {
 
 function _getConnection(connectionId) {
   var connection =
-    sqlobj.selectSingle(_connectionsTable(), {id: connectionId});
+    dsobj.selectSingle(_connectionsTable(), {id: connectionId});
 
   return _modDSConnection(connection);
 }
 
 function _getConnections(roomName) {
   var connections =
-    sqlobj.selectMulti(_connectionsTable(), {roomName:roomName});
+    dsobj.selectMulti(_connectionsTable(), {roomName:roomName});
 
   return connections.map(_modDSConnection);
 }
@@ -217,7 +217,7 @@ function getRoomConnections(roomName) {
 
 function getAllRoomsOfType(roomType) {
   var connections =
-    sqlobj.selectMulti(_connectionsTable(),
+    dsobj.selectMulti(_connectionsTable(),
                        {type: roomType},
                        {orderBy:"roomName"});
 
@@ -237,7 +237,7 @@ function getAllRoomsOfType(roomType) {
 
 function getSocketConnectionId(socketId) {
   var connection =
-    sqlobj.selectSingle(_connectionsTable(),
+    dsobj.selectSingle(_connectionsTable(),
                         {socketId: socketId});
 
   return (connection && connection.id) || null;

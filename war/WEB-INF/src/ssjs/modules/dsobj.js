@@ -15,7 +15,6 @@
  */
 
 import("cache_utils.syncedWithCache");
-import("sqlbase.sqlcommon.*");
 import("jsutils.*");
 import("datastore");
 
