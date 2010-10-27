@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import("sqlbase.sqlobj");
+import("dsobj");
 import("fastJSON");
 import("stringutils");
 import("jsutils.eachProperty");
@@ -266,7 +266,7 @@ function _randomString(len) {
 
 
 function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
-  // Keeps a cache of sqlobj rows for the case where
+  // Keeps a cache of dsobj rows for the case where
   // you want to select one row at a time by a single column
   // at a time, taken from some set of key columns.
   // The cache maps (keyColumn, value), e.g. ("id", 4) or
@@ -350,7 +350,7 @@ function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
         // nothing in cache for this query, fetch from SQL
         var keyToValue = {};
         keyToValue[keyColumn] = value;
-        var fetched = sqlobj.selectSingle(tableName, keyToValue);
+        var fetched = dsobj.selectSingle(tableName, keyToValue);
         if (fetched) {
           processFetched(fetched);
           // fetched something, stick it in the cache
@@ -367,14 +367,14 @@ function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
     updateByKey: function(keyColumn, value, obj) {
       var keyToValue = {};
       keyToValue[keyColumn] = value;
-      sqlobj.updateSingle(tableName, keyToValue, obj);
+      dsobj.updateSingle(tableName, keyToValue, obj);
       // remove old object from caches but
       // don't put obj in cache, because it
       // is likely a partial object
       removeFromCache(keyColumn, value);
     },
     insert: function(obj) {
-      var returnVal = sqlobj.insert(tableName, obj);
+      var returnVal = dsobj.insert(tableName, obj);
       // remove old object from caches but
       // don't put obj in the cache; it doesn't
       // have all values, e.g. for auto-generated ids
@@ -384,7 +384,7 @@ function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
     deleteByKey: function(keyColumn, value) {
       var keyToValue = {};
       keyToValue[keyColumn] = value;
-      sqlobj.deleteRows(tableName, keyToValue);
+      dsobj.deleteRows(tableName, keyToValue);
       removeFromCache(keyColumn, value);
     }
   };
@@ -396,7 +396,7 @@ function _getClientIp() {
 }
 
 function getUserIdCreatedDate(userId) {
-  var record = sqlobj.selectSingle('pad_cookie_userids', {id: userId});
+  var record = dsobj.selectSingle('pad_cookie_userids', {id: userId});
   if (! record) { return; } // hm. weird case.
   return record.createdDate;
 }

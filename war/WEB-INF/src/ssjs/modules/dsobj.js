@@ -26,7 +26,7 @@ jimport("com.google.appengine.api.datastore.KeyFactory");
 jimport("com.google.appengine.api.datastore.Query");
 
 function _withCache(name, fn) {
-  return syncedWithCache('sqlobj.'+name, fn);
+  return syncedWithCache('dsobj.'+name, fn);
 }
 
 function _getDatastoreValue(v) {
@@ -87,7 +87,7 @@ function _toKey(kind, id, parentKey) {
  * Converts a table name into a datastore kind
  */
 function _getKind(tableName) {
-  return "sqlobj."+tableName;
+  return "dsobj."+tableName;
 }
 
 function _setEntityProperties(tableName, entity, obj) {
