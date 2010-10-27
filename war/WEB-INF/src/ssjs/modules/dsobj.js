@@ -33,6 +33,10 @@ function inKeyTransaction(key, f) {
   return datastore.inTransaction(key, f);
 }
 
+function _makeDatastoreKey(parentKey, tableName, stringKey) {
+  return KeyFactory.createKey(parentKey || null, _getKind(tableName), stringKey);
+}
+
 function getRootKey(kind, name) {
   return _makeDatastoreKey(null, kind, name);
 }

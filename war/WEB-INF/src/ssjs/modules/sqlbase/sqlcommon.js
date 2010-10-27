@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-// emptied! (inTransaction moved to ../dsobj.js)
+// emptied!
+
+function inTransaction() {
+  throw Error("inTransaction MOVED TO ../dsobj.js");
+}
