@@ -52,15 +52,14 @@ function getJSON(tableName, stringKey) {
     var result = ds.get(txn, _makeDatastoreKey(parentKey, tableName, stringKey));
     if (result) {
       return fastJSON.parse(String(result.getProperty("json")))['x'];
-    } else {
-      return undefined;
     }
   } catch (e) {
-    if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
-      return undefined;
+    if (!(e.javaException instanceof
+          com.google.appengine.api.datastore.EntityNotFoundException)) {
+      throw e;
     }
-    throw e;
   }
+  return undefined;
 }
 
 function getAllJSON(tableName, start, count) {
@@ -201,9 +200,17 @@ function getStringArrayElement(tableName, stringKey, n) {
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
 
-  var result = ds.get(txn, _generateStringArrayKey(parentKey, tableName, stringKey, n));
-  if (result && result.getProperty("value")) {
-    return String(result.getProperty("value"));
+  try {
+    var result = ds.get(txn,
+                        _generateStringArrayKey(parentKey, tableName, stringKey, n));
+    if (result && result.getProperty("value")) {
+      return String(result.getProperty("value"));
+    }
+  } catch (e) {
+    if (!(e.javaException instanceof
+          com.google.appengine.api.datastore.EntityNotFoundException)) {
+      throw e;
+    }
   }
   return undefined;
 }
