@@ -83,14 +83,14 @@ strong {
 .fpcontent .newpadbuttonwrap {
    width: 152px;
    height: 35px;
-   background: url(/static/img/davy/btn/createpad-small.gif) no-repeat bottom left;
+   background: url(/static+/img/davy/btn/createpad-small.gif) no-repeat bottom left;
 }
 .fpcontent .newpadbuttonwrap a {
    width: 152px;
    position: relative;
    padding: 35px 0 0 0;
    overflow: hidden;
-   background: transparent url(/static/img/davy/btn/createpad-small.gif) no-repeat top left;
+   background: transparent url(/static+/img/davy/btn/createpad-small.gif) no-repeat top left;
    height: 0px;
    display: block;
 }
@@ -305,7 +305,7 @@ body#padviewbody {
   padding-right: 20px;
   padding-top: 15px;
   border-left: 1px solid #ccc;
-  background: #fff url(/static/img/oct/insetrect.gif) no-repeat right top;
+  background: #fff url(/static+/img/oct/insetrect.gif) no-repeat right top;
 }
 
 #productpage #usecases #prosecell p {
@@ -324,11 +324,11 @@ body#padviewbody {
 #productpage ul#tourleftnav li a { color: #33f; text-decoration: none; }
 #productpage ul#tourleftnav li a:hover { text-decoration: underline; }
 #productpage ul#tourleftnav li a { outline: none; }
-#productpage ul#tourleftnav li { background: url(/static/img/oct/usecasesnavup.gif) repeat-x left center; border-bottom: 1px solid #ccc; }
-/*#productpage ul#tourleftnav li:hover { background: url(/static/img/oct/usecasesnavuph.gif) repeat-x left center; }*/
-#productpage ul#tourleftnav li.selected { background: url(/static/img/oct/usecasesnavdown.gif) repeat-x left center }
-/*#productpage ul#tourleftnav li.selected:hover { background: url(/static/img/oct/usecasesnavdownh.gif) repeat-x left center; }*/
-#productpage ul#tourleftnav li.selected a { color: #000; background: url(/static/img/oct/tinytriangle.gif) no-repeat 95% center; }
+#productpage ul#tourleftnav li { background: url(/static+/img/oct/usecasesnavup.gif) repeat-x left center; border-bottom: 1px solid #ccc; }
+/*#productpage ul#tourleftnav li:hover { background: url(/static+/img/oct/usecasesnavuph.gif) repeat-x left center; }*/
+#productpage ul#tourleftnav li.selected { background: url(/static+/img/oct/usecasesnavdown.gif) repeat-x left center }
+/*#productpage ul#tourleftnav li.selected:hover { background: url(/static+/img/oct/usecasesnavdownh.gif) repeat-x left center; }*/
+#productpage ul#tourleftnav li.selected a { color: #000; background: url(/static+/img/oct/tinytriangle.gif) no-repeat 95% center; }
 
 #productpage #tourleftnav a {
   font-size: 1.2em;

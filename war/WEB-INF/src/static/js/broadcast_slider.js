@@ -278,14 +278,14 @@ var global = this;
     $("#playpause_button").mousedown(function(evt) {
       var self = this;
 
-      $(self).css('background-image', 'url(/static/img/pad/timeslider/crushed_button_depressed.png)');
+      $(self).css('background-image', 'url(/static+/img/pad/timeslider/crushed_button_depressed.png)');
       $(self).mouseup(function(evt2) {
-        $(self).css('background-image', 'url(/static/img/pad/timeslider/crushed_button_undepressed.png)');
+        $(self).css('background-image', 'url(/static+/img/pad/timeslider/crushed_button_undepressed.png)');
         $(self).unbind('mouseup');
         BroadcastSlider.playpause();
       });
       $(document).mouseup(function(evt2) {
-        $(self).css('background-image', 'url(/static/img/pad/timeslider/crushed_button_undepressed.png)');
+        $(self).css('background-image', 'url(/static+/img/pad/timeslider/crushed_button_undepressed.png)');
         $(document).unbind('mouseup');
       });
     });

@@ -80,7 +80,7 @@
 #padtable div.gear-drop {
   width: 36px;
   height: 20px;
-  background: url(/static/img/pro/padlist/gear-drop.gif) no-repeat center 4px;
+  background: url(/static+/img/pro/padlist/gear-drop.gif) no-repeat center 4px;
   cursor: pointer;
   padding: 4px 8px;
 }

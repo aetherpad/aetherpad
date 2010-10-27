@@ -41,7 +41,7 @@ div.fpcontent ul li {
 /* top header */
 
 body.pro-withtopbar {
-  background: url(/static/img/pro/header/pro-header-plustopnav-back.gif) repeat-x top !important;
+  background: url(/static+/img/pro/header/pro-header-plustopnav-back.gif) repeat-x top !important;
 }
 
 #pro-topbar {
@@ -53,7 +53,7 @@ body.pro-withtopbar {
   margin: 0 auto;
   height: 48px;
   line-height: 48px;
-  background: url(/static/img/pro/header/pro-header-logo.png) no-repeat top center;
+  background: url(/static+/img/pro/header/pro-header-logo.png) no-repeat top center;
 }
 
 #pro-topbar div#org-name a {
@@ -77,7 +77,7 @@ body.pro-withtopbar {
 /* navigation */
 
 #pro-topnav {
-  background: url(/static/img/pro/topnav/pro-topnav-back.gif) repeat-x top;
+  background: url(/static+/img/pro/topnav/pro-topnav-back.gif) repeat-x top;
   height: 36px;
 }
 
@@ -106,7 +106,7 @@ body.pro-withtopbar {
 #pro-topnav ul li a:hover { }
 #pro-topnav ul li.selected a { 
   color: #000;
-  background: url(/static/img/pro/topnav/pro-topnav-notch.gif) no-repeat center 28px;
+  background: url(/static+/img/pro/topnav/pro-topnav-notch.gif) no-repeat center 28px;
 }
 
 #shuttingdown { position: relative; zoom: 1; border: 1px solid #992;

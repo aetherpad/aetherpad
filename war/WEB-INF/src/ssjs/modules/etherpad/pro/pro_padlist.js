@@ -72,7 +72,7 @@ function _getColumnMeta() {
     title: "",
     render: function(p) {
       if (p.password) {
-        return IMG({src: '/static/img/may09/padlock.gif'});
+        return IMG({src: '/static+/img/may09/padlock.gif'});
       } else {
         return "";
       }

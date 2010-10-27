@@ -6,13 +6,13 @@
    font-family: Arial, Helvetica, Calibri, sans-serif;
 }
 body.home {
-   background: #f7f7f7 url(/static/img/davy/bg/home2.png) repeat-x top;
+   background: #f7f7f7 url(/static+/img/davy/bg/home2.png) repeat-x top;
 }
 .home #container {
    width: 920px; margin: 0 auto;
 }
 body.nothome {
-   background: #f7f7f7 url(/static/img/davy/bg/product.png) repeat-x top;
+   background: #f7f7f7 url(/static+/img/davy/bg/product.png) repeat-x top;
 }
 .nothome #container {
    width: 910px; margin: 0 auto;
@@ -74,12 +74,12 @@ div.fpcontent ul li {
 ----------*/
 
 #topnav_wrap {
-   background: url(/static/img/davy/bg/product.png) repeat-x top;
+   background: url(/static+/img/davy/bg/product.png) repeat-x top;
 }
 #navigation {
    height: 38px;
    overflow: hidden;
-   background: url(/static/img/davy/bg/home2.png) repeat-x top;
+   background: url(/static+/img/davy/bg/home2.png) repeat-x top;
 }
 #navigation h1 a {
    display: block;
@@ -87,7 +87,7 @@ div.fpcontent ul li {
    position: relative;
    padding: 38px 0 0 0;
    overflow: hidden;
-   background: transparent url(/static/img/davy/gfx/product-logo.gif) no-repeat 0 6px;
+   background: transparent url(/static+/img/davy/gfx/product-logo.gif) no-repeat 0 6px;
    height: 0px;
    float: left;
 }
@@ -121,10 +121,10 @@ div.fpcontent ul li {
    color: #bddbff;
 }
 .home #navigation li.selected a {
-   background: url(/static/img/davy/bg/home-nav-selected.png) no-repeat center 32px;
+   background: url(/static+/img/davy/bg/home-nav-selected.png) no-repeat center 32px;
 }
 .nothome #navigation li.selected a {
-   background: url(/static/img/davy/bg/product-nav-selected-white.png) no-repeat center 32px;
+   background: url(/static+/img/davy/bg/product-nav-selected-white.png) no-repeat center 32px;
 }
 #navigation li a:hover {
    color: #DEEDFF;
@@ -169,7 +169,7 @@ div.fpcontent ul li {
             margin-right: -12px;
         }
             #footer #appjet a {
-                background: url(/static/img/davy/gfx/plane.gif) no-repeat right center;
+                background: url(/static+/img/davy/gfx/plane.gif) no-repeat right center;
                 padding-right: 12px;
             }
 

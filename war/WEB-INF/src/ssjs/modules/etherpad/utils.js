@@ -359,7 +359,7 @@ function startConsoleProgressBar(barWidth, updateIntervalSeconds) {
 }
 
 function isStaticRequest() {
-  return (startsWith(request.path, '/static/') ||
+  return (startsWith(request.path, '/static+/') ||
           startsWith(request.path, '/favicon.ico') ||
           startsWith(request.path, '/robots.txt'));
 }

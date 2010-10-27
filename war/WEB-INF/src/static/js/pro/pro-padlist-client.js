@@ -37,7 +37,7 @@ $(document).ready(function() {
           var localPadId = getTargetPadId(menu.target);
           window.location.href = ("/ep/pad/view/"+localPadId+"/latest");
         },
-        icon: '/static/img/pro/padlist/paper-icon.gif'
+        icon: '/static+/img/pro/padlist/paper-icon.gif'
       }
     },
     $.contextMenu.separator,
@@ -53,7 +53,7 @@ $(document).ready(function() {
           var localPadId = getTargetPadId(menu.target);
           etherpad.pro.padlist.deletePad(localPadId);
         },
-        icon: '/static/img/pro/padlist/trash-icon.gif'
+        icon: '/static+/img/pro/padlist/trash-icon.gif'
       }
     }
   ];

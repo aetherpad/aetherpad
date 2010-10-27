@@ -164,8 +164,8 @@ function jsIncludes() {
       });
     }
     if (jsincludes.length < 1) { return ''; }
-    var key = faststatic.getCompressedFilesKey('js', '/static/js', jsincludes);
-    return '<script type="text/javascript" src="/static/compressed/'+key+'"></script>';
+    var key = faststatic.getCompressedFilesKey('js', '/static+/js', jsincludes);
+    return '<script type="text/javascript" src="/static+/compressed/'+key+'"></script>';
   } else {
     var ts = +(new Date);
     var r = [];
@@ -173,7 +173,7 @@ function jsIncludes() {
       r.push('<script type="text/javascript" src="'+COMETPATH+'/js/client.js?'+ts+'"></script>');
     }
     _hd().jsIncludes.asArray().forEach(function(relpath) {
-      r.push('<script type="text/javascript" src="/static/js/'+relpath+'?'+ts+'"></script>');
+      r.push('<script type="text/javascript" src="/static+/js/'+relpath+'?'+ts+'"></script>');
     });
     return r.join('\n');
   }
@@ -181,7 +181,7 @@ function jsIncludes() {
 
 function cssIncludes() {
   if (isProduction()) {
-    var key = faststatic.getCompressedFilesKey('css', '/static/css', _hd().cssIncludes.asArray());
+    var key = faststatic.getCompressedFilesKey('css', '/static+/css', _hd().cssIncludes.asArray());
     return '<link href="/static+/compressed/'+key+'" rel="stylesheet" type="text/css" />';
   } else {
     var ts = +(new Date);

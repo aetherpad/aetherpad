@@ -6,23 +6,23 @@ h1, h2, h3, h4, h5, h6 { font-size: 100%; font-weight: normal; font-style: norma
 
 html { font-size: 62.5%; }
 
-body { background: #ebebeb url(/static/img/jun09/pad/backgrad.gif) repeat-x left top; }
+body { background: #ebebeb url(/static+/img/jun09/pad/backgrad.gif) repeat-x left top; }
 body, textarea { font-family: Arial, sans-serif; }
 
-#topbar { height: 25px; background: #326cbd url(/static/img/jun09/pad/padtopback2.gif) repeat-x left top;
+#topbar { height: 25px; background: #326cbd url(/static+/img/jun09/pad/padtopback2.gif) repeat-x left top;
   position: relative; }
 
 #padpage { margin-left: auto; margin-right: auto; width: 914px; vertical-align: top;}
 
 #topbarleft { float: left; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop4.gif) no-repeat left top; width: 5px; }
+  background: url(/static+/img/jun09/pad/padtop4.gif) no-repeat left top; width: 5px; }
 #topbarright { float: right; height: 100%; overflow: hidden;
-  background: url(/static/img/jun09/pad/padtop4.gif) no-repeat right top; width: 5px; }
+  background: url(/static+/img/jun09/pad/padtop4.gif) no-repeat right top; width: 5px; }
 
 
-.propad #topbar { background: #2c2c2c url(/static/img/jun09/pad/protop.gif) repeat-x 0 -25px; }
-.propad #topbarleft { background: url(/static/img/jun09/pad/protop.gif) no-repeat left top; }
-.propad #topbarright { background: url(/static/img/jun09/pad/protop.gif) no-repeat right top; }
+.propad #topbar { background: #2c2c2c url(/static+/img/jun09/pad/protop.gif) repeat-x 0 -25px; }
+.propad #topbarleft { background: url(/static+/img/jun09/pad/protop.gif) no-repeat left top; }
+.propad #topbarright { background: url(/static+/img/jun09/pad/protop.gif) no-repeat right top; }
 
 a#backtoprosite, #accountnav {
   display: block; position: absolute; height: 15px; line-height: 15px;
@@ -35,9 +35,9 @@ a#backtoprosite, #accountnav a { color: #cde7ff; text-decoration: underline; }
 #topbarcenter { margin-left: 150px; margin-right: 150px; }
 a#topbaretherpad { margin-left: auto; margin-right: auto; display: block; width: 103px;
   position: relative; top: 3px; height: 0; padding-top: 20px;
-  background: url(/static/img/jun09/pad/padtop4.gif) no-repeat -397px -3px; overflow: hidden; }
+  background: url(/static+/img/jun09/pad/padtop4.gif) no-repeat -397px -3px; overflow: hidden; }
 
-.propad a#topbaretherpad { background: url(/static/img/jun09/pad/protop.gif) no-repeat -397px -3px; }
+.propad a#topbaretherpad { background: url(/static+/img/jun09/pad/protop.gif) no-repeat -397px -3px; }
 
 #padmain {
   margin: 7px;
@@ -187,7 +187,7 @@ a#topbaretherpad { margin-left: auto; margin-right: auto; display: block; width:
 #timeslider-left {
   position: absolute;
   left:-2px;
-  background-image: url(/static/img/pad/timeslider/timeslider_left.png);
+  background-image: url(/static+/img/pad/timeslider/timeslider_left.png);
   width: 134px;
   height: 63px;
 }
@@ -196,7 +196,7 @@ a#topbaretherpad { margin-left: auto; margin-right: auto; display: block; width:
   position: absolute;
   top:0px;
   right:-2px;
-  background-image: url(/static/img/pad/timeslider/timeslider_right.png);
+  background-image: url(/static+/img/pad/timeslider/timeslider_right.png);
   width: 155px;
   height: 63px;
 }
@@ -209,7 +209,7 @@ a#topbaretherpad { margin-left: auto; margin-right: auto; display: block; width:
   height: 63px;
   margin-left: 9px;
   margin-right: 9px;
-  background-image: url(/static/img/pad/timeslider/timeslider_background.png);
+  background-image: url(/static+/img/pad/timeslider/timeslider_background.png);
   position: relative;
 }
 
@@ -224,7 +224,7 @@ div#timeslider #timeslider-slider {
 div#ui-slider-handle {
   width: 13px;
   height: 61px;
-  background-image: url(/static/img/pad/timeslider/crushed_current_location.png);
+  background-image: url(/static+/img/pad/timeslider/crushed_current_location.png);
   cursor: pointer;
   -moz-user-select: none;
   -khtml-user-select: none;
@@ -234,7 +234,7 @@ div#ui-slider-handle {
   left: 0;
 }
 * html div#ui-slider-handle { /* IE 6/7 */
-  background-image: url(/static/img/pad/timeslider/current_location.gif);  
+  background-image: url(/static+/img/pad/timeslider/current_location.gif);  
 }
 
 div#ui-slider-bar {
@@ -251,7 +251,7 @@ div#ui-slider-bar {
 }
 
 div#timeslider div#playpause_button {
-  background-image: url(/static/img/pad/timeslider/crushed_button_undepressed.png);
+  background-image: url(/static+/img/pad/timeslider/crushed_button_undepressed.png);
   width: 47px;
   height: 47px;
   position: absolute;
@@ -260,7 +260,7 @@ div#timeslider div#playpause_button {
 }
 
 div#timeslider div#playpause_button div#playpause_button_icon {
-  background-image: url(/static/img/pad/timeslider/play.png);
+  background-image: url(/static+/img/pad/timeslider/play.png);
   width: 47px;
   height: 47px;
   position: absolute;
@@ -268,14 +268,14 @@ div#timeslider div#playpause_button div#playpause_button_icon {
   left:0px;
 }
 * html div#timeslider div#playpause_button div#playpause_button_icon {
-  background-image: url(/static/img/pad/timeslider/play.gif); /* IE 6/7 */
+  background-image: url(/static+/img/pad/timeslider/play.gif); /* IE 6/7 */
 }
 
 div#timeslider div#playpause_button div.pause#playpause_button_icon {
-  background-image: url(/static/img/pad/timeslider/pause.png);
+  background-image: url(/static+/img/pad/timeslider/pause.png);
 }
 * html div#timeslider div#playpause_button div.pause#playpause_button_icon {
-  background-image: url(/static/img/pad/timeslider/pause.gif); /* IE 6/7 */
+  background-image: url(/static+/img/pad/timeslider/pause.gif); /* IE 6/7 */
 }
 
 div #timeslider div#steppers div#leftstar {
@@ -284,7 +284,7 @@ div #timeslider div#steppers div#leftstar {
   top: 8px;
   width:30px;
   height:21px;
-  background: url(/static/img/pad/timeslider/stepper_buttons.png) 0px 44px;
+  background: url(/static+/img/pad/timeslider/stepper_buttons.png) 0px 44px;
   overflow:hidden;
 }
 
@@ -294,7 +294,7 @@ div #timeslider div#steppers div#rightstar {
   top: 8px;
   width:29px;
   height:21px;
-  background: url(/static/img/pad/timeslider/stepper_buttons.png) 29px 44px;
+  background: url(/static+/img/pad/timeslider/stepper_buttons.png) 29px 44px;
   overflow:hidden;
 }
 
@@ -304,7 +304,7 @@ div #timeslider div#steppers div#leftstep {
   top: 33px;
   width:30px;
   height:21px;
-  background: url(/static/img/pad/timeslider/stepper_buttons.png) 0px 22px;
+  background: url(/static+/img/pad/timeslider/stepper_buttons.png) 0px 22px;
   overflow:hidden;
 }
 
@@ -314,20 +314,20 @@ div #timeslider div#steppers div#rightstep {
   top: 33px;
   width:29px;
   height:21px;
-  background: url(/static/img/pad/timeslider/stepper_buttons.png) 29px 22px;
+  background: url(/static+/img/pad/timeslider/stepper_buttons.png) 29px 22px;
   overflow:hidden;
 }
 
 #timeslider div.star {
   position: absolute;
   top: 40px;
-  background-image: url(/static/img/pad/timeslider/star.png);
+  background-image: url(/static+/img/pad/timeslider/star.png);
   width: 15px;
   height: 16px;
   cursor: pointer;
 }
 * html #timeslider div.star {
-  background-image: url(/static/img/pad/timeslider/star.gif); /* IE 6/7 */
+  background-image: url(/static+/img/pad/timeslider/star.gif); /* IE 6/7 */
 }
 
 #timeslider div#timer {

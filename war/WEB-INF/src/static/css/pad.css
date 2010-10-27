@@ -14,7 +14,7 @@ body#padbody {
 }
 
 body#padbody.limwidth {
-  background: #d2d2d2 url(/static/img/apr09/backgrad.png) repeat-x left top;
+  background: #d2d2d2 url(/static+/img/apr09/backgrad.png) repeat-x left top;
 }
 
 body #padoutertable { width: 100%; }
@@ -36,22 +36,22 @@ body.fullwidth #padoutertable .potshad { display: none; }
 body.limwidth #padoutertable .potshad { width: 4px; }
 body.limwidth #padoutertable .potshad div { height: 200px; }
 body.limwidth #padoutertable #pot_shadleft {
-  background: url(/static/img/apr09/shadleft.png) repeat-y right top; }
+  background: url(/static+/img/apr09/shadleft.png) repeat-y right top; }
 body.limwidth #padoutertable #pot_shadleft div,
 body.limwidth #padoutertable #pot_shadlefttopseg {
-  background: url(/static/img/apr09/shadlefttop.png) no-repeat right top; }
+  background: url(/static+/img/apr09/shadlefttop.png) no-repeat right top; }
 body.limwidth #padoutertable #pot_shadright {
-  background: url(/static/img/apr09/shadright.png) repeat-y left top; }
+  background: url(/static+/img/apr09/shadright.png) repeat-y left top; }
 body.limwidth #padoutertable #pot_shadright div,
 body.limwidth #padoutertable #pot_shadrighttopseg {
-  background: url(/static/img/apr09/shadrighttop.png) no-repeat left top; }
+  background: url(/static+/img/apr09/shadrighttop.png) no-repeat left top; }
 body.limwidth #padoutertable #pot_main, body.limwidth #padoutertable #pot_top {
   border-left: 1px solid #333;
   border-right: 1px solid #333;
 }
 body.limwidth #padoutertable #pot_main { border-bottom: 1px solid #333; }
 
-#padoutertable #pot_top { background: #2e609e url(/static/img/apr09/topbar.gif) repeat-x left top;
+#padoutertable #pot_top { background: #2e609e url(/static+/img/apr09/topbar.gif) repeat-x left top;
   height: 28px; vertical-align: middle;
   border-bottom: 1px solid #333;
   padding-left: 1px; padding-right: 1px; /* a little padding helps "active" rects not extend outside */
@@ -63,7 +63,7 @@ body.limwidth #padoutertable #pot_main { border-bottom: 1px solid #333; }
    padding-top: 28px;
    overflow: hidden;
    text-decoration: none;
-   background: url(/static/img/apr09/topbarlogo.gif) no-repeat left top;
+   background: url(/static+/img/apr09/topbarlogo.gif) no-repeat left top;
 }
 #padpage #pot_top a#widthlink {
    display: block; float: right;
@@ -77,13 +77,13 @@ body.limwidth #padoutertable #pot_main { border-bottom: 1px solid #333; }
 #padpage #pot_top a:focus { outline: 0; } /* for firefox */
 
 body.limwidth #padpage #pot_top a#widthlink {
-  background: url(/static/img/apr09/widthfull.gif) no-repeat center 8px; }
+  background: url(/static+/img/apr09/widthfull.gif) no-repeat center 8px; }
 body.fullwidth #padpage #pot_top a#widthlink {
-  background: url(/static/img/apr09/widthlim.gif) no-repeat center 8px; }  
+  background: url(/static+/img/apr09/widthlim.gif) no-repeat center 8px; }  
 body.limwidth #padpage #pot_top a#widthlink:hover {
-  background: url(/static/img/apr09/widthfullactive.gif) no-repeat center 8px; }  
+  background: url(/static+/img/apr09/widthfullactive.gif) no-repeat center 8px; }  
 body.fullwidth #padpage #pot_top a#widthlink:hover {
-  background: url(/static/img/apr09/widthlimactive.gif) no-repeat center 8px; }  
+  background: url(/static+/img/apr09/widthlimactive.gif) no-repeat center 8px; }  
 
 #padpage #pot_top #headurl {
    margin-left: 30px;
@@ -107,7 +107,7 @@ body.fullwidth #padpage #pot_top a#widthlink:hover {
   padding-left: 20px;
   padding-right: 6px;
   overflow: hidden;
-  background: url(/static/img/apr09/newpadicon.gif) no-repeat 2px 8px;
+  background: url(/static+/img/apr09/newpadicon.gif) no-repeat 2px 8px;
 }
 #padpage #pot_top a#newpadlink:hover {
   text-decoration: underline; color: white;
@@ -135,7 +135,7 @@ body.limwidth #padcontent {
    margin-left: auto;
    margin-right: auto;
    padding: 0 1px;
-   background: url(/static/img/oct/minitopback2.gif) repeat center top;
+   background: url(/static+/img/oct/minitopback2.gif) repeat center top;
    border: 1px solid #666;
    border-top: 0;
 }
@@ -147,7 +147,7 @@ body.limwidth #padcontent {
    padding-top: 37px;
    overflow: hidden;
    text-decoration: none;
-   background: url(/static/img/oct/minitoplogo2.gif) no-repeat left top;
+   background: url(/static+/img/oct/minitoplogo2.gif) no-repeat left top;
 }
 #padpage #headnewpad {
    float: right;
@@ -211,13 +211,13 @@ body.limwidth #padpage #padtablediv {
    color: #666;
 }
 #padpage #topbar .connecting {
-   background: url(/static/img/pad/animated-orb-orange-12.gif) no-repeat left center;
+   background: url(/static+/img/pad/animated-orb-orange-12.gif) no-repeat left center;
 }
 #padpage #topbar .connected {
-   background: url(/static/img/pad/orb-greenred-12.gif) no-repeat left 3px;
+   background: url(/static+/img/pad/orb-greenred-12.gif) no-repeat left 3px;
 }
 #padpage #topbar .disconnected {
-   background: url(/static/img/pad/orb-greenred-12.gif) no-repeat left -17px;
+   background: url(/static+/img/pad/orb-greenred-12.gif) no-repeat left -17px;
 }
 #padpage #padtable a.showhide {
    display: block;
@@ -338,11 +338,11 @@ body.limwidth #padpage #padtablediv {
 #padpage #toptoolbar a:focus {
   outline: 0;
 }
-#padpage #toptoolbar .bold { background-image: url(/static/img/may09/bold.gif); }
-#padpage #toptoolbar .italic { background-image: url(/static/img/may09/italic.gif); }
-#padpage #toptoolbar .underline { background-image: url(/static/img/may09/underline.gif); }
-#padpage #toptoolbar .undo { background-image: url(/static/img/may09/undo.gif); }
-#padpage #toptoolbar .redo { background-image: url(/static/img/may09/redo.gif); }
+#padpage #toptoolbar .bold { background-image: url(/static+/img/may09/bold.gif); }
+#padpage #toptoolbar .italic { background-image: url(/static+/img/may09/italic.gif); }
+#padpage #toptoolbar .underline { background-image: url(/static+/img/may09/underline.gif); }
+#padpage #toptoolbar .undo { background-image: url(/static+/img/may09/undo.gif); }
+#padpage #toptoolbar .redo { background-image: url(/static+/img/may09/redo.gif); }
 #padpage #toptoolbar .bold, #padpage #toptoolbar .undo {
   margin-left: 5px;
 }
@@ -360,11 +360,11 @@ body.limwidth #padpage #padtablediv {
 #padpage #toptoolbar .passwordhidden { display: none; }
 #padpage #toptoolbar .passwordlocked {
   display: block;
-  background: url(/static/img/may09/passwordlocked.gif) no-repeat center center;
+  background: url(/static+/img/may09/passwordlocked.gif) no-repeat center center;
 }
 #padpage #toptoolbar .passwordnone {
   display: block;
-  background: url(/static/img/may09/passwordnone.gif) no-repeat center center;
+  background: url(/static+/img/may09/passwordnone.gif) no-repeat center center;
 }
 #padpage #sidebarcell {}
 #padpage #sidebar {
@@ -433,13 +433,13 @@ div#djs p { margin: 0; padding: 0; display: block; }
    font-size: 1.2em;
    text-align: center;
    padding: 3px 6px;
-   background: #eee url(/static/img/pad/sidehead-grad.gif) repeat-x bottom left;
+   background: #eee url(/static+/img/pad/sidehead-grad.gif) repeat-x bottom left;
    border-bottom: 1px solid #666;
    cursor: pointer;
    zoom: 1;
 }
 #sidebar div.sh_hilited {
-  background-image: url(/static/img/oct/sidehead-gradhilite.gif);
+  background-image: url(/static+/img/oct/sidehead-gradhilite.gif);
 }
 #sidebar div.sideheadwrap p.sidehead {
   display: block;
@@ -448,20 +448,20 @@ div#djs p { margin: 0; padding: 0; display: block; }
   margin: 0;
 }
 #sidebar div.sh_uncollapsed p.sidehead {
-   background: url(/static/img/pad/expandy-arrow6-down.gif) no-repeat center left;
+   background: url(/static+/img/pad/expandy-arrow6-down.gif) no-repeat center left;
 }
 #sidebar div.sh_collapsed p.sidehead {
-   background: url(/static/img/pad/expandy-arrow6-right.gif) no-repeat center left;
+   background: url(/static+/img/pad/expandy-arrow6-right.gif) no-repeat center left;
 }
 #sidebar div.sideheadwrap:hover {
    cursor: pointer;
    background: #bbb;
 }
 #sidebar div.sh_uncollapsed:hover p.sidehead {
-   background: url(/static/img/pad/expandy-arrow6-down-active.gif) no-repeat center left;
+   background: url(/static+/img/pad/expandy-arrow6-down-active.gif) no-repeat center left;
 }
 #sidebar div.sh_collapsed:hover p.sidehead {
-   background: url(/static/img/pad/expandy-arrow6-right-active.gif) no-repeat center left;
+   background: url(/static+/img/pad/expandy-arrow6-right-active.gif) no-repeat center left;
 }
 #sidebar div.sidebox { margin-bottom: 10px; }
 #sidebar div#chatbox { margin-bottom: 2px; }
@@ -501,7 +501,7 @@ div#djs p { margin: 0; padding: 0; display: block; }
 }
 #sidebar #userlist a#changenamelink {
    padding-right: 18px;
-   background: url(/static/img/pad/pencil-icon-small-blue.gif) no-repeat top right;
+   background: url(/static+/img/pad/pencil-icon-small-blue.gif) no-repeat top right;
 }   
 #sidebar #userlist div.userinfowrap {
    padding: 6px 0 6px 6px;
@@ -633,7 +633,7 @@ div#djs p { margin: 0; padding: 0; display: block; }
 }
 #sidebar #revisions .revisioninfo .editrlabel {
    padding-left: 16px;
-   background: url(/static/img/pad/pencil-icon-small-blue.gif) no-repeat center left;
+   background: url(/static+/img/pad/pencil-icon-small-blue.gif) no-repeat center left;
 }
 #sidebar #revisions .revisioninfo .rright {
    margin-left: 18px;
@@ -957,7 +957,7 @@ span.nowrap {
 #modaloverlay {
   position: absolute;
   z-index: 100;
-  background-image: url(/static/img/apr09/black35.png);
+  background-image: url(/static+/img/apr09/black35.png);
   zoom: 1;
   display: none;
   left: 0; top: 0;
@@ -966,8 +966,8 @@ span.nowrap {
 
 * html #modaloverlay { /* for IE 6+ */
   background-color: transparent;
-  background-image: url(/static/img/apr09/blank.gif);
-  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/img/apr09/black35.png", sizingMethod="scale");
+  background-image: url(/static+/img/apr09/blank.gif);
+  filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static+/img/apr09/black35.png", sizingMethod="scale");
 }
 
 #modaldialog {
@@ -982,7 +982,7 @@ span.nowrap {
 #dialogtopbar {
   height: 18px;
   border-bottom: 1px solid #333;
-  background: #2e609e url(/static/img/apr09/modalbar.gif) repeat-x left top;
+  background: #2e609e url(/static+/img/apr09/modalbar.gif) repeat-x left top;
   color: #cbd7e7;
   font-size: 1.0em;
   font-weight: bold;

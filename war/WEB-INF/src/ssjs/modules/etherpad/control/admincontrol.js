@@ -461,7 +461,7 @@ function render_padinspector_get() {
     ].join('\n')));
 
     response.write(HTML(
-      HEAD(SCRIPT({type: 'text/javascript', src: '/static/js/jquery-1.3.2.js?'+(+(new Date))})),
+      HEAD(SCRIPT({type: 'text/javascript', src: '/static+/js/jquery-1.3.2.js?'+(+(new Date))})),
       BODY(div, script)));
   }, "r");
 }
