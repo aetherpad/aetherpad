@@ -144,7 +144,7 @@ function selectSingle(tableName, constraints) {
 
   if (selectKey) {
     try {
-      return _entityToJsObj(ds.get(transaction, selectKey));
+      return _entityToJsObj(ds.get(txn, selectKey));
     } catch (e) {
       if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
         return null;
@@ -231,9 +231,9 @@ function update(tableName, constraints, obj) {
     // this isn't a constrained update, it's a single-object update.
     try {
       // note that obj.id is ignored; we don't allow changing id via update
-      var entity = ds.get(transaction, updateKey);
+      var entity = ds.get(txn, updateKey);
       _setEntityProperties(tableName, entity, obj);
-      ds.put(transaction, entity);
+      ds.put(txn, entity);
       return 1;
     } catch (e) {
       if (e.javaException instanceof com.google.appengine.api.datastore.EntityNotFoundException) {
@@ -268,7 +268,7 @@ function deleteRows(tableName, constraints) {
 
   if (deleteKey) {
     // single-key delete
-    ds["delete"](transaction, deleteKey);
+    ds["delete"](txn, deleteKey);
     return;
   }
 
