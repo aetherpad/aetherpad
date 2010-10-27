@@ -25,6 +25,18 @@ jimport("com.google.appengine.api.datastore.Key");
 jimport("com.google.appengine.api.datastore.KeyFactory");
 jimport("com.google.appengine.api.datastore.Query");
 
+function inTransaction(f) {
+  return datastore.inTransaction(null, f);
+}
+
+function inKeyTransaction(key, f) {
+  return datastore.inTransaction(key, f);
+}
+
+function getRootKey(kind, name) {
+  return _makeDatastoreKey(null, kind, name);
+}
+
 function _withCache(name, fn) {
   return syncedWithCache('dsobj.'+name, fn);
 }

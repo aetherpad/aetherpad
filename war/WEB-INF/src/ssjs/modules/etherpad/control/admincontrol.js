@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,6 @@ import("funhtml.*");
 import("stringutils.{html,sprintf,startsWith,md5}");
 import("jsutils.*");
 import("sqlbase.sqlbase");
-import("sqlbase.sqlcommon");
 import("sqlbase.sqlobj");
 import("varz");
 import("comet");
@@ -764,17 +763,6 @@ function render_diagnostics() {
 
 
 //----------------------------------------------------------------
-
-import("etherpad.pad.pad_migrations");
-
-function render_padmigrations() {
-  var residue = (request.params.r || 0);
-  var modulus = (request.params.m || 1);
-  var name = (request.params.n || (residue+"%"+modulus));
-  pad_migrations.runBackgroundMigration(residue, modulus, name);
-  response.write("done");
-  return true;
-}
 
 // TODO: add ability to delete entries?
 // TODO: show sizes?

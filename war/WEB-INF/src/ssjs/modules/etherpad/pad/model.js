@@ -26,7 +26,6 @@ import("etherpad.log");
 import("etherpad.pad.padevents");
 import("etherpad.pad.padutils");
 import("etherpad.pad.dbwriter");
-import("etherpad.pad.pad_migrations");
 import("etherpad.pad.pad_security");
 import("etherpad.collab.collab_server");
 import("cache_utils.syncedWithCache");
@@ -81,8 +80,8 @@ function accessPadGlobal(padId, padFunc, rwMode) {
 
   // pad is never loaded into memory (made "active") unless it has been migrated.
   // Migrations do not use accessPad, but instead access the database directly.
-// migrations are gone.
-// pad_migrations.ensureMigrated(padId);
+  // migrations are gone.
+  // pad_migrations.ensureMigrated(padId);
 
   if (! appjet.requestCache.pads) {
     _onFirstAccess();
@@ -477,7 +476,8 @@ function accessPadGlobal(padId, padFunc, rwMode) {
  * Do not attempt to lock more than one pad at a time.
  */
 function doWithPadLock(padId, func) {
-  return datastore.inTransaction(sqlbase.getRootKey("PAD_ROOT", padId), func);
+  return dsobj.inKeyTransaction(
+    dsobj.getRootKey("PAD_ROOT", padId), func);
   // var lockName = "document/"+padId;
   // return sync.doWithStringLock(lockName, func);
 }

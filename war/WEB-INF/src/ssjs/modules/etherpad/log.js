@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import("sqlbase.sqlobj");
-import("sqlbase.sqlcommon");
+import("dsobj");
 import("stringutils.startsWith");
 import("sync.{callsync,callsyncIfTrue}");
 import("jsutils.*");
@@ -194,20 +193,20 @@ function info(m) {
 
 function onUserJoin(userId) {
   function doUpdate() {
-    sqlobj.update('pad_cookie_userids', {id: userId}, {lastActiveDate: new Date()});
+    dsobj.update('pad_cookie_userids', {id: userId}, {lastActiveDate: new Date()});
   }
   try {
-    sqlcommon.inTransaction(function() {
-      if (sqlobj.selectSingle('pad_cookie_userids', {id: userId})) {
+    dsobj.inTransaction(function() {
+      if (dsobj.selectSingle('pad_cookie_userids', {id: userId})) {
         doUpdate();
       } else {
-        sqlobj.insert('pad_cookie_userids',
+        dsobj.insert('pad_cookie_userids',
                       {id: userId, createdDate: new Date(), lastActiveDate: new Date()});
       }
     });
   }
   catch (e) {
-    sqlcommon.inTransaction(function() {
+    dsobj.inTransaction(function() {
       doUpdate();
     });
   }

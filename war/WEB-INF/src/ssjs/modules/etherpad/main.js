@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@ import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 import("exceptionutils");
 import("fastJSON");
 import("jsutils.*");
-import("sqlbase.sqlcommon");
 import("stringutils");
 
 import("etherpad.globals.*");
@@ -53,7 +52,6 @@ import("etherpad.collab.readonly_server");
 import("etherpad.collab.genimg");
 import("etherpad.pad.model");
 import("etherpad.pad.dbwriter");
-import("etherpad.pad.pad_migrations");
 import("etherpad.pad.noprowatcher");
 
 jimport("java.lang.System.out.println");
@@ -64,7 +62,6 @@ serverhandlers.startupHandler = function() {
 
   log.onStartup();
   statistics.onStartup();
-  pad_migrations.onStartup();
 //  model.onStartup();
   collab_server.onStartup();
   pad_control.onStartup();
@@ -84,7 +81,6 @@ serverhandlers.shutdownHandler = function() {
 
   log.callCatchingExceptions(writeSessionsToDisk);
   log.callCatchingExceptions(dbwriter.onShutdown);
-  log.callCatchingExceptions(sqlcommon.onShutdown);
   log.callCatchingExceptions(pro_pad_editors.onShutdown);
 };
 
