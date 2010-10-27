@@ -7,13 +7,18 @@ import java.io.File;
 class CachedFile(file: File) {
   protected var dirty = true;
   private var contentsCache: Option[String] = None;
+  private var lastModified: Option[Long] = None;
   
   def contents = {
     if (dirty) {
       if (file exists) {
         contentsCache = Some(io.Source fromFile file mkString);
+        if (!Util.isProduction) {
+          lastModified = Some(file.lastModified());
+        }
       } else {
         contentsCache = None;
+        lastModified = None;
       }
       dirty = false;
     }
@@ -22,6 +27,18 @@ class CachedFile(file: File) {
   
   def reset() {
     dirty = true;
+  }
+
+  def isModified: Boolean = {
+    if (Util.isProduction) {
+      false;
+    } else {
+      if (file exists) {
+        file.lastModified() > lastModified.getOrElse(0L);
+      } else {
+        lastModified.isDefined;
+      }
+    }
   }
 }
 
@@ -45,9 +62,18 @@ object Libraries {
   def get(modulePath: String) =
     libs.getOrElseUpdate(modulePath, createLibrary(modulePath));
   
-  def reset() {
-    for ((_, lib) <- libs) {
-      lib.reset();
+  def checkAllModifications() = {
+    if (!Util.isProduction) {
+      var doReset = false;
+      for ((_, lib) <- libs) {
+        if (lib.isModified) {
+          doReset = true;
+          lib.reset();
+        }
+      }
+      if (doReset) {
+        ScopeManager.reset();
+      }
     }
   }
 }

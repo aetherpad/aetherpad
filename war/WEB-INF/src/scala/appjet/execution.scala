@@ -171,6 +171,9 @@ object Util {
         "Cache-Control" -> "no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0",
         "Pragma" -> "no-cache");
 
+  lazy val isProduction =
+    System.getProperty("com.google.appengine.runtime.environment") == "Production";
+
   def gzip(bytes: Array[Byte]): Array[Byte] = {
     if (bytes.length == 0) {
       bytes;
