@@ -61,7 +61,6 @@ function _isAuthorizedAdmin() {
 var _mainLinks = [
   ['padinspector', 'Pad Inspector'],
   ['dashboard', 'Dashboard'],
-  ['config', 'appjet.config'],
   ['shell', 'Shell'],
   ['timings', 'timing data'],
   ['broadcast-message', 'Pad Broadcast'],
@@ -150,22 +149,6 @@ function render_main() {
   response.write(HTML(_commonHead(), BODY(div)));
 }
 
-//----------------------------------------------------------------
-
-function render_config() {
-
-  vars = [];
-  eachProperty(appjet.config, function(k,v) {
-    vars.push(k);
-  });
-
-  vars.sort();
-
-  response.setContentType('text/plain; charset=utf-8');
-  vars.forEach(function(v) {
-    response.write("appjet.config."+v+" = "+appjet.config[v]+"\n");
-  });
-}
 
 //----------------------------------------------------------------
 

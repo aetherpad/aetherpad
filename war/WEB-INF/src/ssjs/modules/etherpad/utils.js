@@ -303,8 +303,7 @@ function isProDomainRequest() {
 }
 
 function hasOffice() {
-  /*XXX*/return false;
-  return appjet.config["etherpad.soffice"] || appjet.config["etherpad.sofficeConversionServer"];
+  return false;
 }
 
 ////////// console progress bar

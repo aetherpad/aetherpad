@@ -82,5 +82,5 @@ get requestCache() {
 get config() {
   return Packages.net.appjet.oui.config.configObject(this.context.runner().globalScope());
 },
-  
+
 }; // end: var appjet = {...

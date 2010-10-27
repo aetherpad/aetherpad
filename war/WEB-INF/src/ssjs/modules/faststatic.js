@@ -31,9 +31,10 @@
 import("fileutils.{readFile,readFileBytes}");
 import("yuicompressor");
 import("stringutils");
-import("varz");
+//import("varz");
 import("ejs.EJS");
 
+jimport("java.io.File");
 jimport("java.lang.System.out.println");
 
 //----------------------------------------------------------------
@@ -85,13 +86,12 @@ var _mtimeCheckInterval = 5000; // 5 seconds
 function _getMTime(f) {
   var mcache = _getCache('mtimes');
   var now = +(new Date);
-  if (appjet.config.devMode ||
-      !(mcache[f] && (now - mcache[f].lastCheck < _mtimeCheckInterval))) {
-    var jfile = new net.appjet.oui.JarVirtualFile(f);
+  if (!(mcache[f] && (now - mcache[f].lastCheck < _mtimeCheckInterval))) {
+    var jfile = new File(f);
     if (jfile.exists() && !jfile.isDirectory()) {
       mcache[f] = {
-	lastCheck:  now,
-	mtime: jfile.lastModified()
+      lastCheck:  now,
+      mtime: jfile.lastModified()
       };
     } else {
       mcache[f] = null;
@@ -138,7 +138,7 @@ function _cachedFileBytes(f) {
   if (!mtime) { return null; }
   var fcache = _getCache('file-bytes-cache');
   if (!(fcache[f] && (fcache[f].mtime == mtime))) {
-    varz.incrementInt("faststatic-file-bytes-cache-miss");
+    //varz.incrementInt("faststatic-file-bytes-cache-miss");
     var bytes = _readFileAndProcess(f, 'bytes');
     if (bytes) {
       fcache[f] = {mtime: mtime, bytes: bytes};
@@ -152,6 +152,10 @@ function _cachedFileBytes(f) {
 }
 
 function _shouldGzip(contentType) {
+
+  // TODO(aiba): re-enable gzip.
+  return false;
+
   var userAgent = request.headers["User-Agent"];
   if (! userAgent) return false;
   if (! (/Firefox/.test(userAgent) || /webkit/i.test(userAgent))) return false;
@@ -293,10 +297,10 @@ function getCompressedFilesKey(type, baseLocalDir, localFileList) {
 function _compressFilesAndMakeKey(type, fileList) {
   function _compress(s) {
     if (type == 'css') {
-      varz.incrementInt("faststatic-yuicompressor-compressCSS");
+      //varz.incrementInt("faststatic-yuicompressor-compressCSS");
       return yuicompressor.compressCSS(s);
     } else if (type == 'js') {
-      varz.incrementInt("faststatic-yuicompressor-compressJS");
+      //varz.incrementInt("faststatic-yuicompressor-compressJS");
       return yuicompressor.compressJS(s);
     } else {
       throw Error('Dont know how to compress this filetype: '+type);
