@@ -238,10 +238,6 @@ function checkHost() {
   return;
 
 
-  // if (appjet.config['etherpad.skipHostnameCheck'] == "true") {
-  //   return;
-  // }
-  // 
 
   // we require the domain to either be <superdomain> or a pro domain request.
   if (SUPERDOMAINS[request.domain]) {
@@ -271,7 +267,7 @@ function checkHTTPS() {
   return;
 
 
-  if (stringutils.startsWith(request.path, "/static/")) { return; }
+  if (stringutils.startsWith(request.path, "/static+/")) { return; }
 
   if (sessions.getSession().disableHttps || request.params.disableHttps) {
     sessions.getSession().disableHttps = true;
@@ -338,10 +334,10 @@ function handlePath() {
   // these paths are handled identically on all sites/subdomains.
   var commonDispatcher = new Dispatcher();
   commonDispatcher.addLocations([
-    ['/favicon.ico', forward(static_control)],
-    ['/robots.txt', forward(static_control)],
-    ['/crossdomain.xml', forward(static_control)],
-    [PrefixMatcher('/static/'), forward(static_control)],
+//    ['/favicon.ico', forward(static_control)],
+//    ['/robots.txt', forward(static_control)],
+//    ['/crossdomain.xml', forward(static_control)],
+    [PrefixMatcher('/static+/'), forward(static_control)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
     [/^\/([^\/]+)$/, pad_control.render_pad],

@@ -182,12 +182,12 @@ function jsIncludes() {
 function cssIncludes() {
   if (isProduction()) {
     var key = faststatic.getCompressedFilesKey('css', '/static/css', _hd().cssIncludes.asArray());
-    return '<link href="/static/compressed/'+key+'" rel="stylesheet" type="text/css" />';
+    return '<link href="/static+/compressed/'+key+'" rel="stylesheet" type="text/css" />';
   } else {
     var ts = +(new Date);
     var r = [];
     _hd().cssIncludes.asArray().forEach(function(relpath) {
-      r.push('<link href="/static/css/'+relpath+'?'+ts+'" rel="stylesheet" type="text/css" />');
+      r.push('<link href="/static+/css/'+relpath+'?'+ts+'" rel="stylesheet" type="text/css" />');
     });
     return r.join('\n');
   }

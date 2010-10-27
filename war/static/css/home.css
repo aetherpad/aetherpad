@@ -1,5 +1,9 @@
 
-#home {
+body#home {
+  background: #fff;
+}
+
+#main {
   width: 888px;
   margin-left: auto;
   margin-right: auto;
