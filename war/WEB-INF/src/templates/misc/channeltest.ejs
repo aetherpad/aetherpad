@@ -1,0 +1,79 @@
+<html>
+	<head>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.2.min.js"></script>
+		<script type="text/javascript" src="/_ah/channel/jsapi"></script>
+		<script type="text/javascript" src="/static+/js/channel.js"></script>
+		<script type="text/javascript" src="/static+/js/json2.js"></script>
+		<script>
+var socket;
+
+function explicate(obj) {
+	out = [];
+	for (var k in obj) {
+		if (obj.hasOwnProperty(k)) {
+			switch(typeof(obj[k])) {
+				case 'object':
+					out.push(k+": "+explicate(obj[k]));
+					break;
+				default:
+					out.push(k+": "+explicate(obj[k]));
+					break;
+			}
+		}
+	}
+	return " {" + out.join(", ") + " }";
+}
+
+function zeroPad(num) {
+	if (num < 10) {
+		return "0"+num;
+	} else {
+		return ""+num;
+	}
+}
+
+function newMessage(date, msg) {
+	date = date.getMonth()+"/"+date.getDay()+"/"+date.getFullYear()+" "+zeroPad(date.getHours())+":"+zeroPad(date.getMinutes());
+	$("#msgtable").append($("<tr><td>"+date+"</td><td>"+msg+"</td></tr>"));
+}
+
+function handleSocketOpened() {
+	socket.send("join:");
+	$('#messageform').submit(function() {
+		socket.send("msg:"+$('#outmessage').val());
+		$('#outmessage').val("");
+		return false;
+	});
+	$('#sendbutton').removeAttr("disabled");
+	$('#outmessage').removeAttr("disabled");
+}
+
+$(function() {
+	var initialMessages = <%= messages %>.a;
+	for (var i = 0; i < initialMessages.length; ++i) {
+		newMessage(new Date(initialMessages[i].date), initialMessages[i].content);
+	}
+	socket = new WebSocket("channelcontrol.test-"+Math.random());
+	socket.onopen = function() {
+		handleSocketOpened();
+	}
+	socket.onmessage = function(evt) {
+		var msg = JSON.parse(evt.data);
+		if (msg.type == "msg") {
+			newMessage(new Date(msg.date), msg.content);
+		}
+	}
+	socket.open()
+});
+		</script>
+	</head>
+	<body>
+		<table id="msgtable">
+			<tr><td></td><td></td></tr>
+		</table>
+		<form action="#" id="messageform">
+			<input type="text" name="message" id="outmessage" disabled="disabled" />
+			<input type="submit" name="Send" value="Send" id="sendbutton" disabled="disabled" />
+		</form>
+	</body>
+</html>

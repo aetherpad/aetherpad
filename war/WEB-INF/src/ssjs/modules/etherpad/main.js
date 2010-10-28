@@ -30,6 +30,7 @@ import("etherpad.legacy_urls");
 
 import("etherpad.control.aboutcontrol");
 import("etherpad.control.admincontrol");
+import("etherpad.control.channelcontrol");
 import("etherpad.control.connection_diagnostics_control");
 import("etherpad.control.global_pro_account_control");
 import("etherpad.control.historycontrol");
@@ -334,6 +335,7 @@ function handlePath() {
 //    ['/robots.txt', forward(static_control)],
 //    ['/crossdomain.xml', forward(static_control)],
     [PrefixMatcher('/static+/'), forward(static_control)],
+    [PrefixMatcher('/ep/channel/'), forward(channelcontrol)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
     [/^\/([^\/]+)$/, pad_control.render_pad],

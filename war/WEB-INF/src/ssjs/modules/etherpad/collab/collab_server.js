@@ -30,7 +30,6 @@ import("fileutils.readFile");
 import("jsutils.{eachProperty,keys}");
 import("etherpad.collab.collabroom_server.*");
 import("etherpad.collab.readonly_server");
-jimport("java.util.concurrent.ConcurrentHashMap");
 
 var PADPAGE_ROOMTYPE = "padpage";
 
