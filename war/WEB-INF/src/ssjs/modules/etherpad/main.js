@@ -21,7 +21,6 @@ import("jsutils.*");
 import("stringutils");
 
 import("etherpad.globals.*");
-import("etherpad.log.{logRequest,logException}");
 import("etherpad.log");
 import("etherpad.utils.*");
 import("etherpad.sessions");
@@ -57,6 +56,8 @@ import("etherpad.pad.noprowatcher");
 
 jimport("java.lang.System.out.println");
 
+/* DEADCODE?  
+
 serverhandlers.startupHandler = function() {
   // Order matters.
   log.onStartup();
@@ -82,16 +83,21 @@ serverhandlers.shutdownHandler = function() {
   log.callCatchingExceptions(dbwriter.onShutdown);
   log.callCatchingExceptions(pro_pad_editors.onShutdown);
 };
+*/
 
 //----------------------------------------------------------------
 // request handling
 //----------------------------------------------------------------
 
 serverhandlers.requestHandler = function() {
+  log.info("start...");
   checkRequestIsWellFormed();
-  sessions.preRequestCookieCheck();
+//  sessions.preRequestCookieCheck();
+  log.info("host...");
   checkHost();
+  log.info("https...");
   checkHTTPS();
+  log.info("path...");
   handlePath();
 };
 
@@ -99,6 +105,9 @@ serverhandlers.requestHandler = function() {
 // Exceptions that are thrown in frontend etherpad javascript should
 //   always be caught and treated specially.
 // If serverhandlers.errorHandler gets called, then it's a bug in the frontend.
+
+/*  DEADCODE?
+
 serverhandlers.errorHandler = function(ex) {
   logException(ex);
   response.setStatusCode(500);
@@ -116,10 +125,13 @@ serverhandlers.errorHandler = function(ex) {
 serverhandlers.postRequestHandler = function() {
   logRequest();
 };
+*/
 
 //----------------------------------------------------------------
 // Scheduled tasks
 //----------------------------------------------------------------
+
+/*  DEADCODE?
 
 serverhandlers.tasks.writePad = function(globalPadId) {
   dbwriter.taskWritePad(globalPadId);
@@ -145,6 +157,7 @@ serverhandlers.tasks.noProWatcherCheckPad = function(globalPadId) {
 serverhandlers.tasks.collabRoomDisconnectSocket = function(connectionId, socketId) {
   collabroom_server.disconnectDefunctSocket(connectionId, socketId);
 };
+*/
 
 //----------------------------------------------------------------
 // cometHandler()
@@ -186,6 +199,8 @@ serverhandlers.cometHandler = function(op, id, data) {
 // sarsHandler()
 //----------------------------------------------------------------
 
+/*  DEADCODE?
+
 serverhandlers.sarsHandler = function(str) {
   str = String(str);
   println("sarsHandler: parsing JSON string (length="+str.length+")");
@@ -197,6 +212,7 @@ serverhandlers.sarsHandler = function(str) {
   }
   return 'UNKNOWN_MESSAGE_TYPE';
 };
+*/
 
 function checkRequestIsWellFormed() {
   // We require the "host" field to be present.
@@ -218,7 +234,7 @@ function checkHost() {
   // Allow all domains.
   return;
 
-
+  /* DEADCODE?
 
   // we require the domain to either be <superdomain> or a pro domain request.
   if (SUPERDOMAINS[request.domain]) {
@@ -232,6 +248,7 @@ function checkHost() {
   var newurl = "http://etherpad.com"+request.path;
   if (request.query) { newurl += "?"+request.query; }
   response.redirect(newurl);
+  */
 }
 
 //----------------------------------------------------------------
@@ -247,6 +264,8 @@ function checkHTTPS() {
    * private crypto keys. --aiba */
   return;
 
+
+  /* DEADCODE?
 
   if (stringutils.startsWith(request.path, "/static+/")) { return; }
 
@@ -302,6 +321,8 @@ function checkHTTPS() {
     }
     response.redirect(url);
   }
+
+  */
 }
 
 //----------------------------------------------------------------
@@ -309,6 +330,10 @@ function checkHTTPS() {
 //----------------------------------------------------------------
 
 function handlePath() {
+  if (!isProduction()) {
+    log.info("Request for path [" + request.path + "]");
+  }
+
   // Default.  Can be overridden in case of static files.
   response.neverCache();
 

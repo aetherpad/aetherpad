@@ -48,7 +48,6 @@ function _updateInitialReferrer(data) {
   }
 
   data.initialReferer = ref;
-  log.custom("referers", {referer: ref});
 }
 
 function _getScopedDomain(subDomain) {

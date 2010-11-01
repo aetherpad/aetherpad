@@ -35,71 +35,6 @@ jimport("java.util.logging.Logger");
 jimport("net.appjet.ajstdlib.execution");
 
 
-function getReadableTime() {
-  return (new Date()).toString().split(' ').slice(0, 5).join('-');
-}
-
-serverhandlers.tasks.trackerAndSessionIds = function() {
-  var m = new Packages.scala.collection.mutable.HashMap();
-  if (request.isDefined) {
-    try {
-      if (sessions.getTrackingId()) {
-        m.update("tracker", sessions.getTrackingId());
-      }
-      if (sessions.getSessionId()) {
-        m.update("session", sessions.getSessionId());
-      }
-      if (request.path) {
-        m.update("path", request.path);
-      }
-      if (request.clientAddr) {
-        m.update("clientAddr", request.clientAddr);
-      }
-      if (request.host) {
-        m.update("host", request.host);
-      }
-      if (getSessionProAccount()) {
-        m.update("proAccountId", getSessionProAccount().id);
-      }
-    } catch (e) {
-      // do nothing.
-    }
-  }
-  return m;
-}
-
-function _getRequestLogEntry() {
-  if (request.isDefined) {
-    var logEntry = {
-      clientAddr: request.clientAddr,
-      method: request.method.toLowerCase(),
-      scheme: request.scheme,
-      host: request.host,
-      path: request.path,
-      query: request.query,
-      referer: request.headers['Referer'],
-      userAgent: request.headers['User-Agent'],
-      statusCode: response.getStatusCode(),
-    }
-    if ('globalPadId' in request.cache) {
-      logEntry.padId = request.cache.globalPadId;
-    }
-    return logEntry;
-  } else {
-    return {};
-  }
-}
-
-function logRequest() {
-  if ((! request.isDefined) ||
-      startsWith(request.path, COMETPATH) ||
-      isStaticRequest()) {
-    return;
-  }
-
-  _log("request", _getRequestLogEntry());
-}
-
 function _log(name, m) {
   if (typeof(m) != 'string') {
     if (typeof(m) == 'object') {
@@ -111,13 +46,13 @@ function _log(name, m) {
 
   switch (name) {
     case 'info':
-      Logger.getLogger("").info(m);
+      Logger.getLogger("etherpad").info(m);
       break;
     case 'warn':
-      Logger.getLogger("").warning(m);
+      Logger.getLogger("etherpad").warning(m);
       break;
     case 'exception':
-      Logger.getLogger("").severe(m);
+      Logger.getLogger("etherpad").severe(m);
       break;
     default:
       Logger.getLogger(name).info(m);
@@ -128,27 +63,6 @@ function custom(name, m) {
   _log(name, m);
 }
 
-function _stampedMessage(m) {
-  var obj = {};
-  if (typeof(m) == 'string') {
-    obj.message = m;
-  } else {
-    eachProperty(m, function(k, v) {
-      obj[k] = v;
-    });
-  }
-  // stamp message with pad and path
-  if (request.isDefined) {
-    obj.path = request.path;
-  }
-
-  var currentPad = padutils.getCurrentPad();
-  if (currentPad) {
-    obj.currentPad = currentPad;
-  }
-
-  return obj;
-}
 
 //----------------------------------------------------------------
 // logException
@@ -159,12 +73,13 @@ function logException(ex) {
     ex = new java.lang.RuntimeException(String(ex));
   }
   // NOTE: ex is always a java.lang.Throwable
-  var m = _getRequestLogEntry();
-  m.jsTrace = exceptionutils.getStackTracePlain(ex);
+  var jsTrace = exceptionutils.getStackTracePlain(ex);
   var s = new java.io.StringWriter();
   ex.printStackTrace(new java.io.PrintWriter(s));
-  m.trace = s.toString();
+  var trace = s.toString();
   _log("exception", m);
+  _log("exception", jsTrace);
+  _log("exception", trace);
 }
 
 function callCatchingExceptions(func) {
@@ -180,16 +95,11 @@ function callCatchingExceptions(func) {
 //----------------------------------------------------------------
 // warning
 //----------------------------------------------------------------
-function warn(m) {
-  _log("warn", _stampedMessage(m));
-}
+function warn(m) { _log("warn", m); }
+function info(m) { _log("info", m); }
 
-//----------------------------------------------------------------
-// info
-//----------------------------------------------------------------
-function info(m) {
-  _log("info", _stampedMessage(m));
-}
+
+// TODO: why is this in log.js?
 
 function onUserJoin(userId) {
   function doUpdate() {
@@ -211,3 +121,4 @@ function onUserJoin(userId) {
     });
   }
 }
+

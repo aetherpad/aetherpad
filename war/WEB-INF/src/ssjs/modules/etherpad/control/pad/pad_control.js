@@ -29,7 +29,6 @@ import("etherpad.globals.*");
 import("etherpad.helpers");
 import("etherpad.quotas");
 import("etherpad.log");
-import("etherpad.log.{logRequest,logException}");
 import("etherpad.sessions");
 import("etherpad.sessions.getSession");
 import("etherpad.utils.*");
