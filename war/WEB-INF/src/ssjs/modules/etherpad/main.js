@@ -90,14 +90,10 @@ serverhandlers.shutdownHandler = function() {
 //----------------------------------------------------------------
 
 serverhandlers.requestHandler = function() {
-  log.info("start...");
   checkRequestIsWellFormed();
 //  sessions.preRequestCookieCheck();
-  log.info("host...");
   checkHost();
-  log.info("https...");
   checkHTTPS();
-  log.info("path...");
   handlePath();
 };
 
