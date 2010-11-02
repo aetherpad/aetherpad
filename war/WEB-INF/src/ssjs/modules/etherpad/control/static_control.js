@@ -24,7 +24,7 @@ jimport("java.lang.System");
 
 function onRequest() {
   // path prefix on local file system
-  var staticBase = 'WEB-INF/src/static';
+  var staticBase = faststatic.STATIC_BASE;
 
   var opts = {cache: isProduction()};
 

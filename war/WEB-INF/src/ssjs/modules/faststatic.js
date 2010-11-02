@@ -37,6 +37,13 @@ import("ejs.EJS");
 jimport("java.io.File");
 jimport("java.lang.System.out.println");
 
+
+//----------------------------------------------------------------
+//  Globals
+//----------------------------------------------------------------
+
+var STATIC_BASE = 'WEB-INF/src/static';
+
 //----------------------------------------------------------------
 // Content Type Guessing
 //----------------------------------------------------------------
@@ -262,10 +269,8 @@ function compressedFileServer(opts) {
   };
 }
 
-function getCompressedFilesKey(type, baseLocalDir, localFileList) {
-  if (stringutils.endsWith(baseLocalDir, '/')) {
-    baseLocalDir = baseLocalDir.substr(0, baseLocalDir.length-1);
-  }
+function getCompressedFilesKey(type, localFileList) {
+  baseLocalDir = (STATIC_BASE + '/' + type);
 
   var fileList = [];
   // convert passed-in file list into list of our file objects
