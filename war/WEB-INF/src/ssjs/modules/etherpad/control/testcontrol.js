@@ -68,7 +68,7 @@ function render_run() {
   }
 }
 
-import("datastore");
+import("gae.datastore");
 jimport("com.google.appengine.api.datastore.Entity");
 jimport("com.google.appengine.api.datastore.KeyFactory");
 

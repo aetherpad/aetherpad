@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import("sessions");
+import("gae.sessions");
 import("stringutils.randomHash");
 import("funhtml.*");
 
@@ -22,33 +22,13 @@ import("etherpad.log");
 import("etherpad.globals.*");
 import("etherpad.pro.pro_utils");
 import("etherpad.utils.*");
-import("cache_utils.syncedWithCache");
 
 jimport("java.lang.System.out.println");
 
 var _TRACKING_COOKIE_NAME = "ET";
-var _SESSION_COOKIE_NAME = "JSESSIONID";
 
-function _updateInitialReferrer(data) {
-
-  if (data.initialReferer) {
-    return;
-  }
-
-  var ref = request.headers["Referer"];
-
-  if (!ref) {
-    return;
-  }
-  if (ref.indexOf('http://'+request.host) == 0) {
-    return;
-  }
-  if (ref.indexOf('https://'+request.host) == 0) {
-    return;
-  }
-
-  data.initialReferer = ref;
-}
+var _SESSION_COOKIE_NAME = "JSESSIONID";  // DO NOT CHANGE!
+                                          // This is set by app engine's servlets.
 
 function _getScopedDomain(subDomain) {
   var d = request.domain;
@@ -69,10 +49,8 @@ function _getScopedDomain(subDomain) {
 // intended for debugging.
 function getSession(subDomain) {
   var sessionData = sessions.getSession({
-    cookieName: _SESSION_COOKIE_NAME,
     domain: _getScopedDomain(subDomain)
   });
-  _updateInitialReferrer(sessionData);
   return sessionData;
 }
 
@@ -86,14 +64,6 @@ function _getGlobalSessionId() {
 
 function isAnEtherpadAdmin() {
   return getSession().isAdmin;
-  // var sessionId = _getGlobalSessionId();
-  // if (! sessionId) {
-  //   return false;
-  // }
-  // 
-  // return syncedWithCache("isAnEtherpadAdmin", function(c) {
-  //   return !! c[sessionId];
-  // });
 }
 
 function setIsAnEtherpadAdmin(v) {
@@ -102,19 +72,6 @@ function setIsAnEtherpadAdmin(v) {
   } else {
     delete getSession().isAdmin;
   }
-  // var sessionId = _getGlobalSessionId();
-  // if (! sessionId) {
-  //   return;
-  // }
-  // 
-  // syncedWithCache("isAnEtherpadAdmin", function(c) {
-  //   if (v) {
-  //     c[sessionId] = true;
-  //   }
-  //   else {
-  //     delete c[sessionId];
-  //   }
-  // });
 }
 
 //--------------------------------------------------------------------------------
@@ -138,7 +95,9 @@ function setTrackingCookie() {
 
 function getTrackingId() {
   // returns '-' if no tracking ID (caller can assume)
-  return (request.cookies[_TRACKING_COOKIE_NAME] || response.getCookie(_TRACKING_COOKIE_NAME) || '-');
+  return (request.cookies[_TRACKING_COOKIE_NAME]
+          || response.getCookie(_TRACKING_COOKIE_NAME)
+          || '-');
 }
 
 //--------------------------------------------------------------------------------

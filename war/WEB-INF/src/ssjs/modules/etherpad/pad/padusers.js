@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import("dsobj");
-import("fastJSON");
-import("stringutils");
-import("jsutils.eachProperty");
-import("sync");
-import("etherpad.sessions");
-import("etherpad.pro.pro_utils");
+import("etherpad.pro.domains");
 import("etherpad.pro.pro_accounts");
 import("etherpad.pro.pro_accounts.getSessionProAccount");
-import("etherpad.pro.domains");
+import("etherpad.pro.pro_utils");
+import("etherpad.sessions");
+import("fastJSON");
+import("gae.dsobj");
+import("jsutils.eachProperty");
+import("stringutils");
 import("stringutils.randomHash");
+import("sync");
 
 var _table = cachedSqlTable('pad_guests', 'pad_guests',
                             ['id', 'privateKey', 'userId'], processGuestRow);

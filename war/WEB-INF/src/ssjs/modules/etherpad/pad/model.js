@@ -15,11 +15,11 @@
  */
 
 import("fastJSON");
+import("gae.datastore");
+import("gae.dsobj");
 import("sqlbase.sqlbase");
-import("dsobj");
-import("timer");
 import("sync");
-import("datastore");
+import("timer");
 
 import("etherpad.collab.ace.easysync2.{Changeset,AttribPool}");
 import("etherpad.log");

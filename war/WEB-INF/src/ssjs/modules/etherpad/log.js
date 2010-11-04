@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import("dsobj");
+import("gae.dsobj");
 import("stringutils.startsWith");
 import("sync.{callsync,callsyncIfTrue}");
 import("jsutils.*");
