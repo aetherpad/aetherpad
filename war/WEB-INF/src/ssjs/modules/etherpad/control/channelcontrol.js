@@ -8,7 +8,19 @@ import("stringutils.startsWith");
 function render_newchannel() {
   var appKey = request.params.appKey;
   response.setContentType("application/json");
-  response.write(fastJSON.stringify({ token: channel.createChannel(appKey) }));
+  //response.write(fastJSON.stringify({ token: channel.createChannel(appKey) }));
+  // HACK: ridiculous channel bug workaround -- dgreenspan
+  response.write(fastJSON.stringify(_hackCreateChannel(appKey)));
+}
+
+function _hackCreateChannel(appKey) {
+  var newAppKey = appKey;
+  var token = channel.createChannel(appKey);
+  while ((token.length % 4) != 0) {
+    newAppKey = newAppKey+"0";
+    token = channel.createChannel(newAppKey);
+  }
+  return { token: token, appKey: newAppKey };
 }
 
 function render_send() {
