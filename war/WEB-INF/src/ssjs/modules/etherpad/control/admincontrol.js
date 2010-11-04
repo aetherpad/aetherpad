@@ -836,9 +836,3 @@ function render_setadminmode() {
 }
 
 
-function render_sessionstest() {
-
-  response.write("Test");
-}
-
-

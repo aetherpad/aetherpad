@@ -91,7 +91,7 @@ serverhandlers.shutdownHandler = function() {
 
 serverhandlers.requestHandler = function() {
   checkRequestIsWellFormed();
-//  sessions.preRequestCookieCheck();
+  sessions.preRequestCookieCheck();
   checkHost();
   checkHTTPS();
   handlePath();

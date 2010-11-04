@@ -30,7 +30,9 @@ function isProduction() {
 var SUPERDOMAINS = {
   'localbox.info': true,
   'localhost': true,
-  'etherpad.com': true
+  'etherpad.com': true,
+  'aetherpad.com': true,
+  'aetherpad.appspot.com': true
 };
 
 var PRO_FREE_ACCOUNTS = 1e9;
