@@ -27,13 +27,17 @@ function isProduction() {
   return (java.lang.System.getProperty("com.google.appengine.runtime.environment") == "Production");
 }
 
-var SUPERDOMAINS = {
+var _SUPERDOMAINS = {
   'localbox.info': true,
   'localhost': true,
   'etherpad.com': true,
   'aetherpad.com': true,
   'aetherpad.appspot.com': true
 };
+
+function isASuperDomain(d) {
+  return true; // for now, everything is a superdomain.
+}
 
 var PRO_FREE_ACCOUNTS = 1e9;
 

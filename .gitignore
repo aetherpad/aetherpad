@@ -1,3 +1,4 @@
-*.class
+war/WEB-INF/appengine-web.xml
 war/WEB-INF/appengine-generated/
+*.class
 *~
