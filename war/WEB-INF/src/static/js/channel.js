@@ -31,8 +31,6 @@ function WebSocket(appKey, token) {
         dataType: "json",
         success: function(data) {
           token = data.token;
-	   // HACK: let server change the appKey -- dgreenspan
-	  appKey = data.appKey;
           channel = new goog.appengine.Channel(token);
           cb();
         },
@@ -53,7 +51,7 @@ function WebSocket(appKey, token) {
     isSending = false;
 
     makeChannel(function() {
-      var handler = new goog.appengine.Socket.Handler();
+      var handler = {};//HACK new goog.appengine.Socket.Handler();
       handler.onopen = function() { handleOpen(); }
       handler.onmessage = function(evt) { self.onmessage(evt); }
       handler.onerror = function(error) { handleError(error); }

@@ -8,19 +8,7 @@ import("stringutils.startsWith");
 function render_newchannel() {
   var appKey = request.params.appKey;
   response.setContentType("application/json");
-  //response.write(fastJSON.stringify({ token: channel.createChannel(appKey) }));
-  // HACK: ridiculous channel bug workaround -- dgreenspan
-  response.write(fastJSON.stringify(_hackCreateChannel(appKey)));
-}
-
-function _hackCreateChannel(appKey) {
-  var newAppKey = appKey;
-  var token = channel.createChannel(appKey);
-  while ((token.length % 4) != 0) {
-    newAppKey = newAppKey+"0";
-    token = channel.createChannel(newAppKey);
-  }
-  return { token: token, appKey: newAppKey };
+  response.write(fastJSON.stringify({ token: channel.createChannel(appKey) }));
 }
 
 function render_send() {
@@ -43,10 +31,15 @@ function render_send() {
  * and not part of the channel infrastructure.
  */
 function render_test() {
-  var messages =
-    dsobj.selectMulti(tableName, {}, {orderBy: "-date", limit: 10}).map(function(msg) {
-      return { date: msg.date, content: msg.content };
-    });
+  if (USE_DATASTORE) {
+    var messages =
+      dsobj.selectMulti(tableName, {}, {orderBy: "-date", limit: 10}).map(function(msg) {
+	return { date: msg.date, content: msg.content };
+      });
+  }
+  else {
+    var messages = [];
+  }
 
   var html = utils.renderTemplateAsString("misc/channeltest.ejs", { messages: fastJSON.stringify({ a: messages.reverse()}) });
   response.write(html);
@@ -54,9 +47,16 @@ function render_test() {
 
 var tableName = "CHANNELTEST_MESSAGES";
 var connections = "CHANNELTEST_CONNECTIONS";
+var connectionsArray = [];
+var USE_DATASTORE = false;
 
 function newUser(appKey) {
-  dsobj.insert(connections, {appKey: appKey});
+  if (USE_DATASTORE) {
+    dsobj.insert(connections, {appKey: appKey});
+  }
+  else {
+    connectionsArray.push({appKey: appKey});
+  }
 }
 
 function handleComet(op, appKey, data) {
@@ -65,9 +65,14 @@ function handleComet(op, appKey, data) {
   } else if (startsWith(data, "msg:")) {
     var content = data.substr("msg:".length);
     var obj = {type: "msg", content: content, date: +(new Date)};
-    dsobj.insert(tableName, obj);
+    if (USE_DATASTORE) {
+      dsobj.insert(tableName, obj);
 
-    var allConnections = dsobj.selectMulti(connections, {});
+      var allConnections = dsobj.selectMulti(connections, {});
+    }
+    else {
+      var allConnections = connectionsArray;
+    }
     var invalidConnections = [];
     var json = fastJSON.stringify(obj);
 
@@ -85,6 +90,15 @@ function handleComet(op, appKey, data) {
         }
       }
     }
-    invalidConnections.forEach(function(obj) { dsobj.deleteRows(connections, obj); });
+    if (USE_DATASTORE) {
+      invalidConnections.forEach(function(obj) { dsobj.deleteRows(connections, obj); });
+    }
+    else {
+      invalidConnections.forEach(function(obj) {
+	connectionsArray = connectionsArray.filter(function(obj2) {
+	  return obj2.appKey != obj.appKey;
+	});
+      });
+    }
   }
 }

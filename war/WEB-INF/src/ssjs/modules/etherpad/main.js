@@ -56,7 +56,7 @@ import("etherpad.pad.noprowatcher");
 
 jimport("java.lang.System.out.println");
 
-/* DEADCODE?  
+/* DEADCODE?
 
 serverhandlers.startupHandler = function() {
   // Order matters.
