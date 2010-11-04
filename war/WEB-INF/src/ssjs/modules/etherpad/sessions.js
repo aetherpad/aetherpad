@@ -120,7 +120,7 @@ function preRequestCookieCheck() {
   }
 
   // Only superdomains can set cookies.
-  var isSuperdomain = SUPERDOMAINS[request.domain];
+  var isSuperdomain = isASuperDomain(request.domain);
 
   if (isSuperdomain) {
     // superdomain without cookies
