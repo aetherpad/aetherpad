@@ -23,8 +23,8 @@ import("etherpad.collab.readonly_server");
 import("etherpad.log");
 jimport("java.util.concurrent.ConcurrentSkipListMap");
 jimport("java.util.concurrent.CopyOnWriteArraySet");
-import("datastore");
-import("dsobj");
+import("gae.datastore");
+import("gae.dsobj");
 
 function onStartup() {
   execution.initTaskThreadPool("collabroom_async", 1);

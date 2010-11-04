@@ -14,68 +14,19 @@
  * limitations under the License.
  */
 
-import("dateutils");
-import("fastJSON");
-import("fileutils");
-import("jsutils.{eachProperty,keys}");
-import("stringutils.{randomHash,startsWith,endsWith}");
-import("sync");
-
-jimport("net.appjet.common.util.ExpiringMapping");
-
-//----------------------------------------------------------------
-
-var _DEFAULT_COOKIE_NAME = "SessionID";
-var _DEFAULT_SERVER_EXPIRATION = 3*24*60*60*1000; // 72 hours
-
-function getSessionId(createIfNotPresent) {
-  if (request.isComet || request.isCron) {
-    return null;
-  }
-
-  var httpSession = request.session(createIfNotPresent);
-  return httpSession.getId();
-}
-
-//----------------------------------------------------------------
+var _SESSION_ATTR = "sessionDataRoot";
 
 function getSession(opts) {
   var httpSession = request.session(true);
-  if (! httpSession.getAttribute("sessionDataRoot")) {
-    httpSession.setAttribute("sessionDataRoot", {});
+  if (! httpSession.getAttribute(_SESSION_ATTR)) {
+    httpSession.setAttribute(_SESSION_ATTR, {});
   }
-  var sessionRoot = httpSession.getAttribute("sessionDataRoot");
-  
+  var sessionRoot = httpSession.getAttribute(_SESSION_ATTR);
   var domainKey = (opts.domain ? opts.domain : "");
   var dataKey = [domainKey, httpSession.getId()].join("$");
   if (! sessionRoot[dataKey]) {
     sessionRoot[dataKey] = {};
   }
   return sessionRoot[dataKey];
-  
-  // // Session options.
-  // if (!opts) { opts = {}; }
-  // var cookieName = opts.cookieName || _DEFAULT_COOKIE_NAME;
-  // 
-  // // get cookie ID (sets response cookie if necessary)
-  // var sessionId = getSessionId(cookieName, true, opts.domain);
-  // 
-  // // get expiring session map
-  // var db = _getCachedDb();
-  // var map = _getExpiringSessionMap(db);
-  // 
-  // // get session data object
-  // var domainKey = (opts.domain ? opts.domain : "");
-  // var dataKey = [domainKey, sessionId].join('$');
-  // 
-  // var sessionData = map.get(dataKey);
-  // if (!sessionData) {
-  //   sessionData = {};
-  //   map.put(dataKey, sessionData);
-  // }
-  // else {
-  //   map.touch(dataKey);
-  // }
-  // 
-  // return sessionData;
 }
+

@@ -20,7 +20,7 @@
 import("jsutils.*");
 import("fastJSON");
 import("timer");
-import("datastore");
+import("gae.datastore");
 
 jimport("java.lang.System.out.println");
 

@@ -1,5 +1,5 @@
-import("channel");
-import("dsobj");
+import("gae.channel");
+import("gae.dsobj");
 import("etherpad.log");
 import("etherpad.utils");
 import("fastJSON");

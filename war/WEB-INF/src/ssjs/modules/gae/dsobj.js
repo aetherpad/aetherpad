@@ -16,7 +16,7 @@
 
 import("cache_utils.syncedWithCache");
 import("jsutils.*");
-import("datastore");
+import("gae.datastore");
 
 jimport("java.lang.System.out.println");
 jimport("com.google.appengine.api.datastore.Entity");
