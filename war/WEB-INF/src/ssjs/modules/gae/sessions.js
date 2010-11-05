@@ -1,20 +1,30 @@
 
-// placeholder for GAE sessions library.
-
-var _SESSION_ATTR = "sessionDataRoot";
+jimport("java.lang.System.out.println");
+jimport("appjet.JSAdapter");
 
 function getSession(opts) {
   opts = opts || {};
   var httpSession = request.session(true);
-  if (! httpSession.getAttribute(_SESSION_ATTR)) {
-    httpSession.setAttribute(_SESSION_ATTR, {});
+
+  var domain = (opts && opts.domain) ? opts.domain : "-";
+
+  function getKey(attrName) {
+    return [domain, attrName].join("$");
   }
-  var sessionRoot = httpSession.getAttribute(_SESSION_ATTR);
-  var domainKey = (opts.domain ? opts.domain : "");
-  var dataKey = [domainKey, httpSession.getId()].join("$");
-  if (! sessionRoot[dataKey]) {
-    sessionRoot[dataKey] = {};
-  }
-  return sessionRoot[dataKey];
+
+  var a = {
+    __put__: function(name, value) {
+        //println("["+request.path+"] PUT SESSION<"+name+"> = "+value);
+
+        var key = getKey(name);
+        httpSession.setAttribute(key, value);
+    },
+    __get__: function(name) {
+        var key = getKey(name);
+        return httpSession.getAttribute(key);
+    }
+  };
+  return new JSAdapter(a);
 }
+
 

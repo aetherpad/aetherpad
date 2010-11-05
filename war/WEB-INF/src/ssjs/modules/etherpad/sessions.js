@@ -17,6 +17,7 @@
 import("gae.sessions");
 import("stringutils.randomHash");
 import("funhtml.*");
+import("jsutils.*");
 
 import("etherpad.log");
 import("etherpad.globals.*");
@@ -52,10 +53,6 @@ function getSession(subDomain) {
     domain: _getScopedDomain(subDomain)
   });
   return sessionData;
-}
-
-function getSessionId() {
-  return sessions.getSessionId(false, _getScopedDomain());
 }
 
 function _getGlobalSessionId() {
@@ -164,5 +161,4 @@ function preRequestCookieCheck() {
     }
   }
 }
-
 

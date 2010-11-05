@@ -835,4 +835,13 @@ function render_setadminmode() {
   response.redirect("/ep/admin/");
 }
 
+function render_sessionstest() {
+  if (!getSession().x) {
+    getSession().x = 1;
+  } else {
+    getSession().x = getSession().x + 1;
+  }
+  response.write(getSession().x);
+}
+
 
