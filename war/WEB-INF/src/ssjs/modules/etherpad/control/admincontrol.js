@@ -73,7 +73,6 @@ var _mainLinks = [
 ];
 
 function onRequest(name) {
-  println("onRequest: "+name);
   if ((name == "auth") || (name == "set_admin_pass")) {
     return;
   }
