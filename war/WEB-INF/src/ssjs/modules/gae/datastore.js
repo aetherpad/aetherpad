@@ -1,5 +1,9 @@
 jimport("appjet.datastore");
 jimport("com.google.appengine.api.datastore.DatastoreServiceFactory");
+jimport("com.google.appengine.api.datastore.Entity");
+jimport("com.google.appengine.api.datastore.EntityNotFoundException");
+jimport("com.google.appengine.api.datastore.Key");
+jimport("com.google.appengine.api.datastore.KeyFactory");
 
 import("jsutils.scalaF0")
 
@@ -25,3 +29,35 @@ function getCurrentTransaction() {
     return { underlying: txn, other: datastore.currentUserData() }
   }
 }
+
+//----------------------------------------------------------------
+// For storing and retreiving misc strings
+//----------------------------------------------------------------
+
+var MISC_KIND = "misc";
+var MISC_STR_PROP = "x";
+
+// Returns null if not found.
+function getMiscString(keyString) {
+  var ds = getDatastoreService();
+  var key = KeyFactory.createKey(MISC_KIND, keyString);
+  try {
+    var ent = ds.get(key);
+    return ent.getProperty(MISC_STR_PROP);
+  } catch (e) {
+    if (e.javaException instanceof EntityNotFoundException) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+function setMiscString(keyString, valString) {
+  var ds = getDatastoreService();
+  var key = KeyFactory.createKey(MISC_KIND, keyString);
+  var ent = new Entity(key);
+  ent.setProperty(MISC_STR_PROP, valString);
+  ds.put(ent);
+}
+
+

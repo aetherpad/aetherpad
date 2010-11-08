@@ -306,58 +306,6 @@ function hasOffice() {
   return false;
 }
 
-////////// console progress bar
-
-function startConsoleProgressBar(barWidth, updateIntervalSeconds) {
-  barWidth = barWidth || 40;
-  updateIntervalSeconds = ((typeof updateIntervalSeconds) == "number" ? updateIntervalSeconds : 1.0);
-
-  var unseenStatus = null;
-  var lastPrintTime = 0;
-  var column = 0;
-
-  function replaceLineWith(str) {
-    //print((new Array(column+1)).join('\b')+str);
-    print('\r'+str);
-    column = str.length;
-  }
-
-  var bar = {
-    update: function(frac, msg, force) {
-      var t = +new Date();
-      if ((!force) && ((t - lastPrintTime)/1000 < updateIntervalSeconds)) {
-        unseenStatus = {frac:frac, msg:msg};
-      }
-      else {
-        var pieces = [];
-        pieces.push(' ', ('  '+Math.round(frac*100)).slice(-3), '%', ' [');
-        var barEndLoc = Math.max(0, Math.min(barWidth-1, Math.floor(frac*barWidth)));
-        for(var i=0;i<barWidth;i++) {
-          if (i < barEndLoc) pieces.push('=');
-          else if (i == barEndLoc) pieces.push('>');
-          else pieces.push(' ');
-        }
-        pieces.push('] ', msg || '');
-        replaceLineWith(pieces.join(''));
-
-        unseenStatus = null;
-        lastPrintTime = t;
-      }
-    },
-    finish: function() {
-      if (unseenStatus) {
-        bar.update(unseenStatus.frac, unseenStatus.msg, true);
-      }
-      println();
-    }
-  };
-
-  println();
-  bar.update(0, null, true);
-
-  return bar;
-}
-
 function isStaticRequest() {
   return (startsWith(request.path, '/static+/') ||
           startsWith(request.path, '/favicon.ico') ||

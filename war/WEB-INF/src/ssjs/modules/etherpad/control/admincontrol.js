@@ -25,6 +25,8 @@ import("varz");
 import("comet");
 import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 
+import ("gae.datastore");
+
 import("etherpad.globals.*");
 import("etherpad.utils.*");
 import("etherpad.sessions.getSession");
@@ -51,9 +53,6 @@ jimport("net.appjet.oui.appstats");
 //----------------------------------------------------------------
 
 function _isAuthorizedAdmin() {
-  if (!isProduction()) {
-    return true;
-  }
   return (getSession().adminAuth === true);
 }
 
@@ -74,7 +73,7 @@ var _mainLinks = [
 ];
 
 function onRequest(name) {
-  if (name == "auth") {
+  if ((name == "auth") || (name == "set_admin_pass")) {
     return;
   }
   if (!_isAuthorizedAdmin()) {
@@ -98,7 +97,41 @@ function _commonHead() {
 
 //----------------------------------------------------------------
 
+var ADMIN_PASS_KEY = "etherpad-admin-password";
+
+function getAdminPass() {
+  var p = datastore.getMiscString(ADMIN_PASS_KEY);
+  if (!p) {
+    response.redirect("/ep/admin/set-admin-pass");
+  }
+  return p;
+}
+
+function render_set_admin_pass() {
+  println("set-admin-pass");
+  // You can't set the admin pass after it's already been set.
+  if (datastore.getMiscString(ADMIN_PASS_KEY)) {
+    println("admin pass already exists.  redirecting....");
+    response.redirect('/ep/admin/auth');
+  }
+  if (request.method == "GET") {
+    response.write(FORM({method: "POST", action: request.path},
+          LABEL("New admin pass:"),
+          INPUT({type: "text", name: "password", value: ""})));
+  }
+  if (request.method == "POST") {
+    var pass = request.params.password;
+    if (pass.length == 0) {
+      response.redirect(request.path);
+    }
+    datastore.setMiscString(ADMIN_PASS_KEY, pass);
+    println("admin pass has been updated!");
+    response.redirect("/ep/admin/");
+  }
+}
+
 function render_auth() {
+  var adminPass = getAdminPass();
   var cont = getSession().cont;
   if (getSession().message) {
     response.write(DIV(P(B(getSession().message))));
@@ -114,7 +147,7 @@ function render_auth() {
   }
   if (request.method == "POST") {
     var pass = request.params.password;
-    if (pass === appjet.config['etherpad.adminPass']) {
+    if (pass === getAdminPass()) {
       getSession().adminAuth = true;
       if (cont) {
         response.redirect(cont);
@@ -833,6 +866,15 @@ function render_setadminmode() {
   sessions.setIsAnEtherpadAdmin(
     String(request.params.v).toLowerCase() == "true");
   response.redirect("/ep/admin/");
+}
+
+function render_sessionstest() {
+  if (!getSession().x) {
+    getSession().x = 1;
+  } else {
+    getSession().x = getSession().x + 1;
+  }
+  response.write(getSession().x);
 }
 
 
