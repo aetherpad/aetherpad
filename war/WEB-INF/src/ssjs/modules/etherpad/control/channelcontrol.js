@@ -31,7 +31,7 @@ function render_send() {
  * and not part of the channel infrastructure.
  */
 function render_test() {
-  if (USE_DATASTORE) {
+  if (USE_DATASTORE_FOR_MESSAGES) {
     var messages =
       dsobj.selectMulti(tableName, {}, {orderBy: "-date", limit: 10}).map(function(msg) {
 	return { date: msg.date, content: msg.content };
@@ -48,10 +48,11 @@ function render_test() {
 var tableName = "CHANNELTEST_MESSAGES";
 var connections = "CHANNELTEST_CONNECTIONS";
 var connectionsArray = [];
-var USE_DATASTORE = false;
+var USE_DATASTORE_FOR_CONNECTIONS = true;
+var USE_DATASTORE_FOR_MESSAGES = true;
 
 function newUser(appKey) {
-  if (USE_DATASTORE) {
+  if (USE_DATASTORE_FOR_CONNECTIONS) {
     dsobj.insert(connections, {appKey: appKey});
   }
   else {
@@ -65,9 +66,10 @@ function handleComet(op, appKey, data) {
   } else if (startsWith(data, "msg:")) {
     var content = data.substr("msg:".length);
     var obj = {type: "msg", content: content, date: +(new Date)};
-    if (USE_DATASTORE) {
+    if (USE_DATASTORE_FOR_MESSAGES) {
       dsobj.insert(tableName, obj);
-
+    }
+    if (USE_DATASTORE_FOR_CONNECTIONS) {
       var allConnections = dsobj.selectMulti(connections, {});
     }
     else {
@@ -90,7 +92,7 @@ function handleComet(op, appKey, data) {
         }
       }
     }
-    if (USE_DATASTORE) {
+    if (USE_DATASTORE_FOR_CONNECTIONS) {
       invalidConnections.forEach(function(obj) { dsobj.deleteRows(connections, obj); });
     }
     else {
