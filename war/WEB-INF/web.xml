@@ -16,7 +16,7 @@
   </filter>
   <filter-mapping>
     <filter-name>appstats</filter-name>
-    <url-pattern>/*</url-pattern>
+    <url-pattern>/ep/*</url-pattern>
   </filter-mapping>
   <servlet>
     <servlet-name>appstats</servlet-name>

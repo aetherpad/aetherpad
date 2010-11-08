@@ -290,7 +290,7 @@ function deleteRows(tableName, constraints) {
   var matchingEntities =
     _getEntitiesForConstraints(tableName, constraints, {keysOnly: true});
   ds["delete"](txn, new java.lang.Iterable({
-    iterator: function() { return java.lang.Iterator({
+    iterator: function() { return java.util.Iterator({
       pos: 0,
       hasNext: function() { return this.pos < matchingEntities.length; },
       next: function() { return matchingEntities[this.pos++].getKey(); }
