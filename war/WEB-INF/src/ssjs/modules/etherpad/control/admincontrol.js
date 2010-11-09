@@ -26,6 +26,7 @@ import("comet");
 import("dispatch.{Dispatcher,PrefixMatcher,DirMatcher,forward}");
 
 import ("gae.datastore");
+import ("gae.taskqueue");
 
 import("etherpad.globals.*");
 import("etherpad.utils.*");
@@ -876,5 +877,11 @@ function render_sessionstest() {
   }
   response.write(getSession().x);
 }
+
+function render_queuetest() {
+  taskqueue.schedule("test", "test"+(+(new Date)), {a: 1, b: 2, color: "indigo"});
+  response.write("enqueued");
+}
+
 
 

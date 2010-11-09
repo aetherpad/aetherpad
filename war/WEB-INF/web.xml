@@ -17,4 +17,14 @@
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
+
+    <security-constraint>
+        <web-resource-collection>
+          <url-pattern>/_ah/queue/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+          <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+
 </web-app>
