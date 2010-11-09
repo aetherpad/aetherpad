@@ -4,6 +4,7 @@ import("etherpad.log");
 import("etherpad.utils");
 import("fastJSON");
 import("stringutils.startsWith");
+import("gae.taskqueue");
 
 function render_newchannel() {
   var appKey = request.params.appKey;
@@ -69,10 +70,12 @@ function handleComet(op, appKey, data) {
   } else if (startsWith(data, "grab:")) {
     var username = data.substr("grab:".length);
     dsobj.insert(TABLE_GRABS, {username: username});
+
+    taskqueue.schedule("grabber", "update", {});
   }
 }
 
-function render_dotask() {
+function runTask(taskName, args) {
   var allGrabs = dsobj.selectMulti(TABLE_GRABS, {});
 
   if (allGrabs.length < 1) {
@@ -82,8 +85,10 @@ function render_dotask() {
   var allConnections = dsobj.selectMulti(TABLE_CONNECTIONS, {});
 
   dsobj.inKeyTransaction(_globalRoot(), function() {
-    var lastClaim = dsobj.selectSingle(
+    var lastClaimArray = dsobj.selectMulti(
       TABLE_CLAIMS, {}, {orderBy: "-num", limit: 1});
+    var lastClaim = (lastClaimArray.length > 0 ?
+		     lastClaimArray[0] : null);
     var curClaimNum = (lastClaim ? lastClaim.num : 0);
     allGrabs.forEach(function(grab) {
       ++curClaimNum;

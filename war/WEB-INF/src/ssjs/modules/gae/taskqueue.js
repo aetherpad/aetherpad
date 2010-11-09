@@ -9,7 +9,7 @@ jimport("com.google.appengine.api.labs.taskqueue.TaskOptions.Builder.payload");
 jimport("com.google.appengine.api.labs.taskqueue.TaskOptions.Builder.taskName");
 jimport("com.google.appengine.api.labs.taskqueue.TaskOptions");
 
-// will POST to /_ah/<queueName>/<taskName
+// handlers added in etherpad.control.queue.queue_dispatcher
 function schedule(queueName, taskName, payloadObj) {
   var q = QueueFactory.getQueue(queueName);
   var json = fastJSON.stringify(payloadObj);
