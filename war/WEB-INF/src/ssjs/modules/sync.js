@@ -22,6 +22,8 @@ jimport("net.appjet.oui.GlobalSynchronizer");
  * f may have return values.
  */
 function callsync(obj, f) {
+  throw Error("callsync does not work any more.");
+
   if (!obj._LOCK) {
     try {
       appjet.globalLock.lock();
@@ -70,6 +72,8 @@ function wrapsync(obj, f, thisArg) {
 }
 
 function doWithStringLock(lockName, fn) {
+  throw Error("does not work anymore");
+
   GlobalSynchronizer.acquire(lockName);
   try {
     return fn();
