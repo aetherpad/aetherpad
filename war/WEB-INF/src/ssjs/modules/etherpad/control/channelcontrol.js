@@ -46,12 +46,18 @@ function render_test() {
 }
 
 function render_cleardb() {
+  dsobj.deleteRows(TABLE_GRABS, {});
   dsobj.deleteRows(TABLE_CLAIMS, {});
   dsobj.deleteRows(TABLE_CONNECTIONS, {});
 }
 
+var TABLE_GRABS = "CHANNELTEST_GRABS";
 var TABLE_CLAIMS = "CHANNELTEST_CLAIMS";
 var TABLE_CONNECTIONS = "CHANNELTEST_CONNECTIONS";
+
+function _globalRoot() {
+  return dsobj.getRootKey("CHANNELTEST_ROOT", "global");
+}
 
 function newUser(appKey) {
   dsobj.insert(TABLE_CONNECTIONS, {appKey: appKey});
@@ -62,25 +68,48 @@ function handleComet(op, appKey, data) {
     newUser(appKey);
   } else if (startsWith(data, "grab:")) {
     var username = data.substr("grab:".length);
-
-    var newClaimNum = Math.round((((+new Date)/20)%10000)+1);
-    var newClaim = {num: newClaimNum, username: username};
-    dsobj.insert(TABLE_CLAIMS, newClaim);
-
-    var msg = {type: "claim", text: getClaimText(newClaim)};
-
-    var allConnections = dsobj.selectMulti(TABLE_CONNECTIONS, {});
-
-    var json = fastJSON.stringify(msg);
-
-    for (var i = 0; i < allConnections.length; ++i) {
-      try {
-        channel.sendMessage(allConnections[i].appKey, json);
-      } catch (e) {
-        if (e instanceof java.com.google.appengine.api.channel.ChannelFailureException) {
-          //invalidConnections.push(allConnections[i]);
-        }
-      }
-    }
+    dsobj.insert(TABLE_GRABS, {username: username});
   }
+}
+
+function render_dotask() {
+  var allGrabs = dsobj.selectMulti(TABLE_GRABS, {});
+
+  if (allGrabs.length < 1) {
+    return;
+  }
+
+  var allConnections = dsobj.selectMulti(TABLE_CONNECTIONS, {});
+
+  dsobj.inKeyTransaction(_globalRoot(), function() {
+    var lastClaim = dsobj.selectSingle(
+      TABLE_CLAIMS, {}, {orderBy: "-num", limit: 1});
+    var curClaimNum = (lastClaim ? lastClaim.num : 0);
+    allGrabs.forEach(function(grab) {
+      ++curClaimNum;
+
+      var newClaim = {num: curClaimNum, username: grab.username};
+      dsobj.insert(TABLE_CLAIMS, newClaim);
+
+      var msg = {type: "claim", text: getClaimText(newClaim)};
+
+      var json = fastJSON.stringify(msg);
+
+      allConnections.forEach(function(conn) {
+	try {
+          channel.sendMessage(conn.appKey, json);
+	} catch (e) {
+          if (e instanceof java.com.google.appengine.api.channel.ChannelFailureException) {
+            //invalidConnections.push(allConnections[i]);
+          }
+	}
+      });
+
+    });
+
+  });
+
+  allGrabs.forEach(function(grab) {
+    dsobj.deleteRows(TABLE_GRABS, {id:grab.id});
+  });
 }
