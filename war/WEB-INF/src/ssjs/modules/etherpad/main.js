@@ -41,7 +41,7 @@ import("etherpad.control.pro_signup_control");
 import("etherpad.control.pro_help_control");
 import("etherpad.control.static_control");
 import("etherpad.control.testcontrol");
-import("etherpad.control.queue.test_queue");
+import("etherpad.control.queue.queue_dispatcher");
 
 import("etherpad.pro.pro_pad_editors");
 import("etherpad.pro.pro_utils");
@@ -340,7 +340,7 @@ function handlePath() {
 //    ['/favicon.ico', forward(static_control)],
 //    ['/robots.txt', forward(static_control)],
 //    ['/crossdomain.xml', forward(static_control)],
-    [/^\/_ah\/queue\/test$/, test_queue.execute],
+    [PrefixMatcher('/_ah/queue/'), forward(queue_dispatcher)],
     [PrefixMatcher('/static+/'), forward(static_control)],
     [PrefixMatcher('/ep/channel/'), forward(channelcontrol)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],

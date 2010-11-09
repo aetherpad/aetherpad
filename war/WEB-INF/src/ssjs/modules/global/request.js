@@ -17,6 +17,8 @@
 import("stringutils.trim");
 import("jsutils.scalaF0")
 
+jimport("appjet.BetterFile.getReaderString");
+
 function _cx() { return appjet.context };
 function _req() { return _cx().request() };
 function _toStringArray(obj) {
@@ -288,6 +290,10 @@ get underlying() {
   if (this.isDefined) {
     return _req();
   }
+},
+
+get bodyString() {
+  return getReaderString(_req().getReader());
 }
 
 }; // end: var request = {...
