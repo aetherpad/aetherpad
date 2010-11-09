@@ -71,7 +71,8 @@ function handleComet(op, appKey, data) {
     var username = data.substr("grab:".length);
     dsobj.insert(TABLE_GRABS, {username: username});
 
-    taskqueue.schedule("grabber", "update", {});
+    taskqueue.schedule("grabber", "update-"+
+		       String(Math.random()).substr(2), {});
   }
 }
 
