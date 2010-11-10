@@ -19,14 +19,14 @@ function _ms() {
 }
 
 function get(key) {
-  return MemcacheServiceFactory.getMemcacheService().get(key);
+  return _ms().get(key);
 }
 
 function increment(key, delta, init) {
-  if (init) {
-    return _ms().increment(key, Number(delta), Number(init));
-  } else {
+  if (init === undefined) {
     return _ms().increment(key, Number(delta));
+  } else {
+    return _ms().increment(key, Number(delta), Number(init));
   }
 }
 
