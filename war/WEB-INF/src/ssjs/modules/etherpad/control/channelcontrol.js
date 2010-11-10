@@ -5,7 +5,7 @@ import("etherpad.utils");
 import("fastJSON");
 import("stringutils.startsWith");
 import("gae.taskqueue");
-import("etherpad.control.integergrab_naivetask");
+import("etherpad.control.integergrab_memcache");
 
 function render_newchannel() {
   var appKey = request.params.appKey;
@@ -19,7 +19,7 @@ function render_send() {
   messages.forEach(function(msg) {
     // keep all messages from the channelcontrol key local to this module.
     if (startsWith(appKey, "channelcontrol.test-")) {
-      integergrab_naivetask.handleComet("message", appKey, msg);
+      integergrab_memcache.handleComet("message", appKey, msg);
       return;
     }
     serverhandlers.cometHandler("message", appKey, msg);

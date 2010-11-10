@@ -24,9 +24,9 @@ function get(key) {
 
 function increment(key, delta, init) {
   if (init) {
-    return _ms().increment(key, delta, init);
+    return _ms().increment(key, Number(delta), Number(init));
   } else {
-    return _ms().increment(key, delta);
+    return _ms().increment(key, Number(delta));
   }
 }
 
@@ -35,7 +35,7 @@ function putWithPolicy(key, value, policy) {
 }
 
 function putOnlyIfNotPresent(key, value) {
-  return putWithPolicy(ADD_ONLY_IF_NOT_PRESENT);
+  return putWithPolicy(key, value, ADD_ONLY_IF_NOT_PRESENT);
 }
 
 function put(key, value) {
@@ -46,4 +46,6 @@ function remove(key) {
   return _ms()['delete'](key);
 }
 
-
+function clearAll() {
+  _ms().clearAll();
+}

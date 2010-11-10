@@ -43,6 +43,7 @@ import("etherpad.control.static_control");
 import("etherpad.control.testcontrol");
 import("etherpad.control.queue.queue_dispatcher");
 import("etherpad.control.integergrab_naivetask");
+import("etherpad.control.integergrab_memcache");
 
 import("etherpad.pro.pro_pad_editors");
 import("etherpad.pro.pro_utils");
@@ -345,6 +346,7 @@ function handlePath() {
     [PrefixMatcher('/static+/'), forward(static_control)],
     [PrefixMatcher('/ep/channel/'), forward(channelcontrol)],
     [PrefixMatcher('/ep/ig/naivetask/'), forward(integergrab_naivetask)],
+    [PrefixMatcher('/ep/ig/memcache/'), forward(integergrab_memcache)],
     [PrefixMatcher('/ep/genimg/'), genimg.renderPath],
     [PrefixMatcher('/ep/pad/'), forward(pad_control)],
     [/^\/([^\/]+)$/, pad_control.render_pad],
