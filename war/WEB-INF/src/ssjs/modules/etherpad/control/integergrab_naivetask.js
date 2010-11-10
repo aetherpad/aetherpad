@@ -16,7 +16,7 @@ function render_test() {
       return { text: getClaimText(claim) };
     });
 
-  var html = utils.renderTemplateAsString("misc/integergrab_naivetask.ejs", { claims: fastJSON.stringify({ a: claims.reverse()}) });
+  var html = utils.renderTemplateAsString("misc/integergrab.ejs", { claims: fastJSON.stringify({ a: claims.reverse()}) });
   response.write(html);
 }
 
