@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
+jimport("java.lang.System.out.println");
+
 function assertTruthy(x) {
   if (!x) {
-    throw new Error("assertTruthy failure: "+x);
+    var msg = "assertTruthy failure: "+x;
+    println(msg);
+    throw new Error(msg);
+  }
+}
+
+function assertEqual(x, y) {
+  if (x != y) {
+    var msg = ("[" + x + "] != [" + y + "]");
+    println(msg);
+    throw new Error(msg);
   }
 }
 
