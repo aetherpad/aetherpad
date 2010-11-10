@@ -9,7 +9,7 @@
     <bucket-size>10</bucket-size>
   </queue>
   <queue>
-    <name>grabber</name>
+    <name>integergrab-naivetask-grabber</name>
     <rate>5/s</rate>
     <bucket-size>10</bucket-size>
   </queue>
