@@ -22,6 +22,7 @@ jimport("java.lang.System.out.println");
 //----------------------------------------------------------------
 var tests = [
   "t0000_test",
+  "t0001_memcache",
   "t0005_easysync"
 ];
 
