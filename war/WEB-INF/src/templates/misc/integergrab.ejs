@@ -44,7 +44,7 @@ $(function() {
 	for (var i = 0; i < initialClaims.length; ++i) {
 		newClaim(initialClaims[i].text);
 	}
-	socket = new WebSocket("channelcontrol.test-"+Math.random());
+	socket = new WebSocket("integergrab.test-"+Math.random());
 	socket.onopen = function() {
 		handleSocketOpened();
 	}
