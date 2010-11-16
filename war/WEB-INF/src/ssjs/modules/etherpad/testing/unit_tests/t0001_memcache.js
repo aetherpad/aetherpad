@@ -3,12 +3,16 @@ import("etherpad.testing.testutils.assertTruthy");
 import("etherpad.testing.testutils.assertEqual");
 import("gae.memcache");
 jimport("java.lang.System.out.println");
+import("etherpad.globals.isProduction");
 
 function run() {
   testBasicPutAndGet();
   testIncrement();
   testIdentifiable1();
-  testIdentifiable2();
+  if (isProduction()) {
+    testIdentifiable2();
+  }
+  testPerformAtomic();
 }
 
 function _memcache() {
@@ -52,3 +56,20 @@ function testIdentifiable2() {
 	      mc.putIfUntouched("k", iv, iv.value+"z"));
 }
 
+// doesn't actually test atomicity, just functionality
+function testPerformAtomic() {
+  var mc = _memcache();
+  mc.put("k", "a");
+  assertEqual("a", mc.get("k"));
+
+  function twice(x) { return x+x; }
+
+  mc.performAtomic("k", twice);
+  assertEqual("aa", mc.get("k"));
+
+  mc.performAtomic("k", twice);
+  assertEqual("aaaa", mc.get("k"));
+
+  mc.performAtomic("k", twice);
+  assertEqual("aaaaaaaa", mc.get("k"));
+}

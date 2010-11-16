@@ -74,6 +74,7 @@ var _proto = {
     }
   },
   putIfUntouched: function(key, oldCasAndValue, newValue, expiration) {
+    // ported from MemcacheServiceImpl
     var reqBuilder = MemcacheSetRequest.newBuilder();
     reqBuilder.setNameSpace(_getEffectiveNamespace(this._srv));
     var itemBuilder = MemcacheSetRequest.Item.newBuilder();
@@ -97,6 +98,19 @@ var _proto = {
       throw new Error();
     }
     return (status == MemcacheSetResponse.SetStatusCode.STORED);
+  },
+  performAtomic: function(key, func) {
+    var complete = false;
+    var tries = 0;
+    while (! complete) {
+      if (tries >= 5) {
+	throw new java.lang.RuntimeException("Too much memcache contention.");
+      }
+      var iv = this.getIdentifiable(key);
+      var newValue = func(iv.value);
+      complete = this.putIfUntouched(key, iv, newValue);
+      tries++;
+    }
   }
 };
 
