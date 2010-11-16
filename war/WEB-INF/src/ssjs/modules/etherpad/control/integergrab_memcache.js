@@ -6,6 +6,7 @@ import("fastJSON");
 import("stringutils.startsWith");
 import("gae.taskqueue");
 import("gae.memcache");
+import("jsutils.keys");
 
 function getClaimText(claim) {
   return claim.num+": "+claim.username;
@@ -24,16 +25,33 @@ function render_test() {
 function render_cleardb() {
   memcache.CLEAR_ALL(); // Clears all data in memcache, not just integer grab!
   dsobj.deleteRows(TABLE_CLAIMS, {});
-  dsobj.deleteRows(TABLE_CONNECTIONS, {});
 }
 
 var TABLE_CLAIMS = "INTEGERGRAB_MEMCACHE_CLAIMS";
-var TABLE_CONNECTIONS = "CHANNELTEST_CONNECTIONS";
-var KEY_NEXTNUM = "integergrab_memcache.nextNum";
-var KEY_CLAIM_PREFIX = "integergrab_memcache.claim.";
+var KEY_NEXTNUM = "nextNum";
+var KEY_CLAIM_PREFIX = "claim.";
+var KEY_CONNECTIONS = "connections";
+
+function _getObj(key) {
+  var value = _memcache().get(key);
+  if (value === null) {
+    return null;
+  }
+  else {
+    return fastJSON.parse(value).x;
+  }
+}
+function _performAtomicObj(key, func, initialValue) {
+  _memcache().performAtomic(key, function(json) {
+    return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
+  }, fastJSON.stringify({x:initialValue}));
+}
 
 function newUser(appKey) {
-  dsobj.insert(TABLE_CONNECTIONS, {appKey: appKey});
+  _performAtomicObj(KEY_CONNECTIONS, function(conns) {
+    conns[appKey] = true;
+    return conns;
+  }, {});
 }
 
 function _memcache() {
@@ -75,17 +93,9 @@ function runTask(taskName, args) {
   var msg =
     {type:"claim", text: getClaimText(claim)};
 
-  var allConnections = dsobj.selectMulti(TABLE_CONNECTIONS, {});
+  var allConnections = keys(_getObj(KEY_CONNECTIONS));
 
   var json = fastJSON.stringify(msg);
 
-  allConnections.forEach(function(conn) {
-    try {
-      channel.sendMessage(conn.appKey, json);
-    } catch (e) {
-      if (e instanceof java.com.google.appengine.api.channel.ChannelFailureException) {
-        //invalidConnections.push(allConnections[i]);
-      }
-    }
-  });
+  channel.sendMessageBatch(allConnections, json);
 }

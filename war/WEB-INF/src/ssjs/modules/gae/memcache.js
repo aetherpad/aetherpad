@@ -99,7 +99,7 @@ var _proto = {
     }
     return (status == MemcacheSetResponse.SetStatusCode.STORED);
   },
-  performAtomic: function(key, func) {
+  performAtomic: function(key, func, initialValue) {
     var complete = false;
     var tries = 0;
     while (! complete) {
@@ -107,9 +107,14 @@ var _proto = {
 	throw new java.lang.RuntimeException("Too much memcache contention.");
       }
       var iv = this.getIdentifiable(key);
-      var newValue = func(iv.value);
-      complete = this.putIfUntouched(key, iv, newValue);
-      tries++;
+      if (iv === null) {
+	this.putOnlyIfNotPresent(key, initialValue);
+      }
+      else {
+	var newValue = func(iv.value);
+	complete = this.putIfUntouched(key, iv, newValue);
+	tries++;
+      }
     }
   }
 };
