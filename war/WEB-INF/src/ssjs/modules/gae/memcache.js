@@ -9,43 +9,113 @@ jimport("com.google.appengine.api.memcache.MemcacheService.SetPolicy.REPLACE_ONL
 jimport("com.google.appengine.api.memcache.MemcacheService.SetPolicy.SET_ALWAYS");
 jimport("com.google.appengine.api.memcache.MemcacheServiceFactory");
 
+jimport("com.google.appengine.api.NamespaceManager");
+jimport("com.google.appengine.api.memcache.MemcacheServicePb.MemcacheGetRequest");
+jimport("com.google.appengine.api.memcache.MemcacheServicePb.MemcacheGetResponse");
+jimport("com.google.appengine.api.memcache.MemcacheServicePb.MemcacheSetRequest");
+jimport("com.google.appengine.api.memcache.MemcacheServicePb.MemcacheSetResponse");
+jimport("com.google.appengine.api.memcache.MemcacheSerialization");
+jimport("com.google.apphosting.api.ApiProxy");
+jimport("com.google.appengine.repackaged.com.google.protobuf.ByteString");
 
-// 20 years in future
-var FAR_IN_FUTURE = Expiration.byDeltaSeconds(60 * 60 * 24 * 365 * 20);
 
-
-function _ms() {
-  return MemcacheServiceFactory.getMemcacheService();
-}
-
-function get(key) {
-  return _ms().get(key);
-}
-
-function increment(key, delta, init) {
-  if (init === undefined) {
-    return _ms().increment(key, Number(delta));
+function ns(namespace) {
+  if (namespace) {
+    return _wrapService(MemcacheServiceFactory.getMemcacheService(namespace));
   } else {
-    return _ms().increment(key, Number(delta), Number(init));
+    return _wrapService(MemcacheServiceFactory.getMemcacheService());
   }
 }
 
-function putWithPolicy(key, value, policy) {
-  return _ms().put(key, value, null, policy);
+var _proto = {
+  get: function(key) {
+    return this._srv.get(key);
+  },
+  increment: function(key, delta, init) {
+    if (init === undefined) {
+      return this._srv.increment(key, Number(delta));
+    } else {
+      return this._srv.increment(key, Number(delta), Number(init));
+    }
+  },
+  putWithPolicy: function(key, value, policy) {
+    return this._srv.put(key, value, null, policy);
+  },
+  putOnlyIfNotPresent: function(key, value) {
+    return this.putWithPolicy(key, value, ADD_ONLY_IF_NOT_PRESENT);
+  },
+  put: function put(key, value) {
+    return this.putWithPolicy(key, value, SET_ALWAYS);
+  },
+  remove: function(key) {
+    return this._srv['delete'](key);
+  },
+  getIdentifiable: function(key) {
+    // ported from MemcacheServiceImpl
+    var reqBuilder = MemcacheGetRequest.newBuilder();
+    reqBuilder.setNameSpace(_getEffectiveNamespace(this._srv));
+    reqBuilder.addKey(ByteString.copyFrom(MemcacheSerialization.makePbKey(key)));
+    reqBuilder.setForCas(true);
+    var req = reqBuilder.build();
+
+    var responseBytes =
+      ApiProxy.makeSyncCall("memcache", "Get", req.toByteArray());
+    var res = MemcacheGetResponse.newBuilder();
+    res.mergeFrom(responseBytes);
+
+    if (res.getItemCount() < 1) {
+      return null;
+    }
+    else {
+      var item = res.getItem(0);
+      var value = MemcacheSerialization.deserialize(item.getValue().toByteArray(),
+						    item.getFlags());
+      return {cas: java.lang.Long.valueOf(item.getCasId()).toString(), value:value};
+    }
+  },
+  putIfUntouched: function(key, oldCasAndValue, newValue, expiration) {
+    var reqBuilder = MemcacheSetRequest.newBuilder();
+    reqBuilder.setNameSpace(_getEffectiveNamespace(this._srv));
+    var itemBuilder = MemcacheSetRequest.Item.newBuilder();
+    var valueAndFlags = MemcacheSerialization.serialize(newValue);
+    itemBuilder.setValue(ByteString.copyFrom(valueAndFlags.value));
+    itemBuilder.setFlags(valueAndFlags.flags.ordinal());
+    itemBuilder.setKey(ByteString.copyFrom(MemcacheSerialization.makePbKey(key)));
+    itemBuilder.setExpirationTime(expiration ? expiration.getSecondsValue() : 0);
+    itemBuilder.setSetPolicy(MemcacheSetRequest.SetPolicy.CAS);
+    itemBuilder.setCasId(java.lang.Long.parseLong(oldCasAndValue.cas));
+    itemBuilder.setForCas(true);
+    reqBuilder.addItem(itemBuilder);
+    var req = reqBuilder.build();
+
+    var responseBytes =
+      ApiProxy.makeSyncCall("memcache", "Set", req.toByteArray());
+    var res = MemcacheSetResponse.newBuilder();
+    res.mergeFrom(responseBytes);
+    var status = res.getSetStatus(0);
+    if (status == MemcacheSetResponse.SetStatusCode.ERROR) {
+      throw new Error();
+    }
+    return (status == MemcacheSetResponse.SetStatusCode.STORED);
+  }
+};
+
+
+
+function _wrapService(srv) {
+  function F() {}
+  F.prototype = _proto;
+  var mc = new F();
+  mc._srv = srv;
+  return mc;
 }
 
-function putOnlyIfNotPresent(key, value) {
-  return putWithPolicy(key, value, ADD_ONLY_IF_NOT_PRESENT);
+// ported from MemcacheServiceImpl
+function _getEffectiveNamespace(srv) {
+  return srv.getNamespace() || NamespaceManager.get() || "";
 }
 
-function put(key, value) {
-  return putWithPolicy(key, value, SET_ALWAYS);
-}
-
-function remove(key) {
-  return _ms()['delete'](key);
-}
-
-function clearAll() {
-  _ms().clearAll();
+// clears all entries in all namespaces
+function CLEAR_ALL() {
+  ns()._srv.clearAll();
 }

@@ -22,7 +22,7 @@ function render_test() {
 }
 
 function render_cleardb() {
-  memcache.clearAll();
+  memcache.CLEAR_ALL(); // Clears all data in memcache, not just integer grab!
   dsobj.deleteRows(TABLE_CLAIMS, {});
   dsobj.deleteRows(TABLE_CONNECTIONS, {});
 }
@@ -36,21 +36,27 @@ function newUser(appKey) {
   dsobj.insert(TABLE_CONNECTIONS, {appKey: appKey});
 }
 
+function _memcache() {
+  return memcache.ns("integergrab_memcache");
+}
+
 function handleComet(op, appKey, data) {
+  var mc = _memcache();
+
   if (startsWith(data, "join:")) {
     newUser(appKey);
   } else if (startsWith(data, "grab:")) {
     var username = data.substr("grab:".length);
 
-    var origNextNum = Number(memcache.get(KEY_NEXTNUM) || 0);
+    var origNextNum = Number(mc.get(KEY_NEXTNUM) || 0);
     var nextNum = origNextNum;
-    while (! memcache.putOnlyIfNotPresent(
+    while (! mc.putOnlyIfNotPresent(
       KEY_CLAIM_PREFIX+nextNum, username)) {
 
       nextNum++;
     }
     // nextNum is number that succeeded
-    memcache.increment(KEY_NEXTNUM, nextNum-origNextNum+1, 0);
+    mc.increment(KEY_NEXTNUM, nextNum-origNextNum+1, 0);
 
     dsobj.insert(TABLE_CLAIMS, {username: username,
 				num: nextNum});
