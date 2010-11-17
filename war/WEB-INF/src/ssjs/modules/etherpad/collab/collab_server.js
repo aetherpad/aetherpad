@@ -465,34 +465,7 @@ function dumpStorageToString(pad) {
   return errors.concat(lines).join('\n');
 }
 
-function _getPadIdForSocket(socketId) {
-  var connectionId = getSocketConnectionId(socketId);
-  if (connectionId) {
-    var connection = getConnection(connectionId);
-    if (connection) {
-      return _roomToPadId(connection.roomName);
-    }
-  }
-  return null;
-}
-
-function _getUserIdForSocket(socketId) {
-  var connectionId = getSocketConnectionId(socketId);
-  if (connectionId) {
-    var connection = getConnection(connectionId);
-    if (connection) {
-      return connection.data.userInfo.userId;
-    }
-  }
-  return null;
-}
-
 function _serverDebug(msg) { /* nothing */ }
-
-function _accessSocketPad(socketId, accessType, padFunc, dontRequirePad) {
-  return _accessCollabPad(_getPadIdForSocket(socketId), accessType,
-                          padFunc, dontRequirePad);
-}
 
 function _accessConnectionPad(connection, accessType, padFunc, dontRequirePad) {
   return _accessCollabPad(_roomToPadId(connection.roomName), accessType,

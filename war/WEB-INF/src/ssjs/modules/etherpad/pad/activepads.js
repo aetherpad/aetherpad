@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
 
 import("jsutils.cmp");
 
-jimport("net.appjet.common.util.LimitedSizeMapping");
+//jimport("net.appjet.common.util.LimitedSizeMapping");
 
 var HISTORY_SIZE = 100;
 
@@ -30,22 +30,24 @@ function _getMap() {
 }
 
 function touch(padId) {
-  _getMap().put(padId, +(new Date));
+  //_getMap().put(padId, +(new Date));
 }
 
 function getActivePads() {
-  var m = _getMap();
-  var a = m.listAllKeys().toArray();
-  var activePads = [];
-  for (var i = 0; i < a.length; i++) {
-    activePads.push({
-      padId: a[i],
-      timestamp: m.get(a[i])
-    });
-  }
+  return [];
 
-  activePads.sort(function(a,b) { return cmp(b.timestamp,a.timestamp); });
-  return activePads;
+//  var m = _getMap();
+//  var a = m.listAllKeys().toArray();
+//  var activePads = [];
+//  for (var i = 0; i < a.length; i++) {
+//    activePads.push({
+//      padId: a[i],
+//      timestamp: m.get(a[i])
+//    });
+//  }
+//
+//  activePads.sort(function(a,b) { return cmp(b.timestamp,a.timestamp); });
+//  return activePads;
 }
 
 
