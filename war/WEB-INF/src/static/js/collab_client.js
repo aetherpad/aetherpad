@@ -1,12 +1,12 @@
 /**
  * Copyright 2009 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS-IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,9 +65,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
 
   $(window).bind("unload", function() {
     if (socket) {
-      socket.onclosed = function() {};
-      socket.onhiccup = function() {};
-      socket.disconnect(true);
+      socket.onclose = function() {};
+      socket.close();
     }
   });
   if ($.browser.mozilla) {
@@ -82,9 +81,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
 
   function abandonConnection(reason) {
     if (socket) {
-      socket.onclosed = function() {};
-      socket.onhiccup = function() {};
-      socket.disconnect();
+      socket.onclose = function() {};
+      socket.close();
     }
     socket = null;
     setChannelState("DISCONNECTED", reason);
@@ -114,7 +112,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       if (state == "COMMITTING" && (t - lastCommitTime) > 20000) {
         // a commit is taking too long
         appLevelDisconnectReason = "slowcommit";
-        socket.disconnect();
+        socket.close();
       }
       else if (state == "COMMITTING" && (t - lastCommitTime) > 5000) {
         callbacks.onConnectionTrouble("SLOW");
@@ -176,9 +174,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       socketId = String(Math.floor(Math.random()*1e12));
       socket = new WebSocket(socketId);
       socket.onmessage = wrapRecordingErrors("socket.onmessage", handleMessageFromServer);
-      socket.onclosed = wrapRecordingErrors("socket.onclosed", handleSocketClosed);
+      socket.onclose = wrapRecordingErrors("socket.onclose", handleSocketClosed);
       socket.onopen = wrapRecordingErrors("socket.onopen", function() {
-        hiccupCount = 0;
         setChannelState("CONNECTED");
         var msg = { type:"CLIENT_READY", roomType:'padpage',
                     roomName:'padpage/'+globalPadId,
@@ -193,9 +190,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
         sendMessage(msg);
         doDeferredActions();
       });
-      socket.onhiccup = wrapRecordingErrors("socket.onhiccup", handleCometHiccup);
       socket.onlogmessage = dmesg;
-      socket.connect();
+      socket.open();
       success = true;
     });
     if (success) {
@@ -215,25 +211,8 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
   }
   setTimeout(setUpSocketWhenWindowLoaded, 0);
 
-  var hiccupCount = 0;
-  function handleCometHiccup(params) {
-    dmesg("HICCUP (connected:"+(!!params.connected)+")");
-    var connectedNow = params.connected;
-    if (! connectedNow) {
-      hiccupCount++;
-      // skip first "cut off from server" notification
-      if (hiccupCount > 1) {
-        setChannelState("RECONNECTING");
-      }
-    }
-    else {
-      hiccupCount = 0;
-      setChannelState("CONNECTED");
-    }
-  }
-
   function sendMessage(msg) {
-    socket.postMessage(JSON.stringify({type: "COLLABROOM", data: msg}));
+    socket.send(JSON.stringify({type: "COLLABROOM", data: msg}));
   }
 
   function wrapRecordingErrors(catcher, func) {
@@ -271,7 +250,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       var apool = msg.apool;
       if (newRev != (rev+1)) {
         dmesg("bad message revision on NEW_CHANGES: "+newRev+" not "+(rev+1));
-        socket.disconnect();
+        socket.close();
         return;
       }
       rev = newRev;
@@ -281,7 +260,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       var newRev = msg.newRev;
       if (newRev != (rev+1)) {
         dmesg("bad message revision on ACCEPT_COMMIT: "+newRev+" not "+(rev+1));
-        socket.disconnect();
+        socket.close();
         return;
       }
       rev = newRev;

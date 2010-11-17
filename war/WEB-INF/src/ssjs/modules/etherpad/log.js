@@ -77,7 +77,6 @@ function logException(ex) {
   var s = new java.io.StringWriter();
   ex.printStackTrace(new java.io.PrintWriter(s));
   var trace = s.toString();
-  _log("exception", m);
   _log("exception", jsTrace);
   _log("exception", trace);
 }

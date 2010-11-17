@@ -62,7 +62,7 @@ function WebSocket(appKey, token) {
       socket.onopen = handler.onopen;
       socket.onmessage = handler.onmessage;
       socket.onerror = handler.onerror;
-      socket.onclosed = handler.onclosed;
+      socket.onclose = handler.onclose;
     });
   }
 

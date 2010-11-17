@@ -28,6 +28,7 @@ jimport("com.google.appengine.api.datastore.Entity");
 jimport("com.google.appengine.api.datastore.FetchOptions");
 jimport("com.google.appengine.api.datastore.KeyFactory");
 jimport("com.google.appengine.api.datastore.Query");
+jimport("com.google.appengine.api.datastore.Text");
 
 function _getKind(tableName) {
   return "sqlbase."+tableName;
@@ -51,7 +52,7 @@ function getJSON(tableName, stringKey) {
   try {
     var result = ds.get(txn, _makeDatastoreKey(parentKey, tableName, stringKey));
     if (result) {
-      return fastJSON.parse(String(result.getProperty("json")))['x'];
+      return fastJSON.parse(String(result.getProperty("json").getValue()))['x'];
     }
   } catch (e) {
     if (!(e.javaException instanceof
@@ -78,7 +79,7 @@ function getAllJSON(tableName, start, count) {
       var next = i.next();
       results.push({
         id: next.getKey().getName(),
-        value: fastJSON.parse(String(next.getProperty("json")))['x']
+        value: fastJSON.parse(String(next.getProperty("json").getValue()))['x']
       });
     }
   }
@@ -118,7 +119,7 @@ function putJSON(tableName, stringKey, objectOrValue) {
   var entity = new Entity(_getKind(tableName), stringKey, parentKey);
 
   // Don't index the json, duh.
-  entity.setUnindexedProperty("json", json);
+  entity.setUnindexedProperty("json", new Text(json));
 
   ds.put(txn, entity);
 }

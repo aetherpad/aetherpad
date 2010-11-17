@@ -16,7 +16,8 @@ limitations under the License. */ %>
 <% helpers.addBodyClass(bodyClass) %>
 <% helpers.includeCss("pad2_ejs.css") %>
 <% helpers.includeJs("undo-xpopup.js") %>
-<% helpers.includeCometJs() %>
+<% helpers.addToHead('<script type="text/javascript" src="/_ah/channel/jsapi"></script>') %>
+<% helpers.includeJs("channel.js") %>
 <% helpers.includeJQuery(); %>
 <% helpers.includeJs("json2.js") %>
 <% helpers.includeJs("colorutils.js") %>

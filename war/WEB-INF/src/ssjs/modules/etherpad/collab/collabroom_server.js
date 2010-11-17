@@ -15,7 +15,6 @@
  */
 
 import("execution");
-import("comet");
 import("fastJSON");
 import("cache_utils.syncedWithCache");
 import("etherpad.collab.collab_server");
@@ -25,6 +24,7 @@ jimport("java.util.concurrent.ConcurrentSkipListMap");
 jimport("java.util.concurrent.CopyOnWriteArraySet");
 import("gae.datastore");
 import("gae.dsobj");
+import("gae.channel");
 
 function onStartup() {
   execution.initTaskThreadPool("collabroom_async", 1);
@@ -88,19 +88,19 @@ function sendMessage(connectionId, msg) {
   var connection = _getConnection(connectionId);
   if (connection) {
     _sendMessageToSocket(connection.socketId, msg);
-    if (! comet.isConnected(connection.socketId)) {
-      // defunct socket, disconnect (later)
-      execution.scheduleTask("collabroom_async",
-                             "collabRoomDisconnectSocket",
-                             0, [connection.id,
-                                 connection.socketId]);
-    }
+//    if (! comet.isConnected(connection.socketId)) {
+//      // defunct socket, disconnect (later)
+//      execution.scheduleTask("collabroom_async",
+//                             "collabRoomDisconnectSocket",
+//                             0, [connection.id,
+//                                 connection.socketId]);
+//    }
   }
 }
 
 function _sendMessageToSocket(socketId, msg) {
   var msgString = fastJSON.stringify({type: "COLLABROOM", data: msg});
-  comet.sendMessage(socketId, msgString);
+  channel.sendMessage(socketId, msgString);
 }
 
 function disconnectDefunctSocket(connectionId, socketId) {
@@ -115,7 +115,7 @@ function _bootSocket(socketId, reason) {
     _sendMessageToSocket(socketId,
                          {type: "DISCONNECT_REASON", reason: reason});
   }
-  comet.disconnect(socketId);
+  //comet.disconnect(socketId);
 }
 
 function bootConnection(connectionId, reason) {
@@ -250,7 +250,7 @@ function handleComet(cometOp, cometId, msg) {
     if (!x) {
       _doWarn("Collab operation rejected due to missing value, case "+id);
       if (messageSocketId) {
-        comet.disconnect(messageSocketId);
+        //comet.disconnect(messageSocketId);
       }
       response.stop();
     }
