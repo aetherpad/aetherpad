@@ -475,7 +475,7 @@ function _accessConnectionPad(connection, accessType, padFunc, dontRequirePad) {
 function _accessCollabPad(padId, accessType, padFunc, dontRequirePad) {
   if (! padId) {
     if (! dontRequirePad) {
-      _doWarn("Collab operation \""+accessType+"\" aborted because socket "+socketId+" has no pad.");
+      _doWarn("Collab operation \""+accessType+"\" aborted.");
     }
     return;
   }
