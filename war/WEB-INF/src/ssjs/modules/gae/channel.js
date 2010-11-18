@@ -1,3 +1,5 @@
+import("fastJSON");
+
 jimport("com.google.appengine.api.channel.ChannelServiceFactory");
 jimport("com.google.appengine.api.channel.ChannelMessage");
 
@@ -14,7 +16,8 @@ function createChannel(appKey) {
  * Sends a message to the client identified by the given token.
  */
 function sendMessage(appKey, message) {
-  channelService.sendMessage(new ChannelMessage(appKey, message));
+  var wrappedMessage = fastJSON.stringify({type: "msg", msg: message});
+  channelService.sendMessage(new ChannelMessage(appKey, wrappedMessage));
 }
 
 jimport("com.google.appengine.api.channel.ChannelServicePb");
@@ -26,8 +29,9 @@ jimport("com.google.apphosting.api.ApiProxy");
  */
 function sendMessageBatch(appKeyArray, message) {
   var futures = appKeyArray.map(function(appKey) {
+    var wrappedMessage = fastJSON.stringify({type: "msg", msg: message});
     var smr = (new ChannelServicePb.SendMessageRequest())
-      .setApplicationKey(appKey).setMessage(message);
+      .setApplicationKey(appKey).setMessage(wrappedMessage);
 
     var future = ApiProxy.makeAsyncCall(
       "channel", "SendChannelMessage", smr.toByteArray());
@@ -42,4 +46,12 @@ function sendMessageBatch(appKeyArray, message) {
     }
   });
   return results;
+}
+
+/**
+ * Asks the client to close the connection with an optional message.
+ */
+function sendDisconnect(appKey, message) {
+  var wrappedMessage = fastJSON.stringify({type: "disconnect", msg: message});
+  channelService.sendMessage(new ChannelMessage(appKey, wrappedMessage));
 }

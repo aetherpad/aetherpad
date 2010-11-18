@@ -51,6 +51,27 @@ function render_test() {
   response.write(html);
 }
 
+function render_testdisconnect() {
+  var allConnections;
+  if (USE_DATASTORE_FOR_CONNECTIONS) {
+    allConnections = dsobj.selectMulti(connections, {});
+  } else {
+    allConnections = connectionsArray;
+  }
+
+  allConnections.forEach(function(conn) {
+    channel.sendDisconnect(conn.appKey, fastJSON.stringify({type: "msg", content: "GOODBYE!", date: +(new Date)}));
+  });
+
+  if (USE_DATASTORE_FOR_CONNECTIONS) {
+    allConnections.forEach(function(conn) {
+      dsobj.deleteRows(connections, conn);
+    });
+  } else {
+    connectionsArray = [];
+  }
+}
+
 var tableName = "CHANNELTEST_MESSAGES";
 var connections = "CHANNELTEST_CONNECTIONS";
 var connectionsArray = [];
