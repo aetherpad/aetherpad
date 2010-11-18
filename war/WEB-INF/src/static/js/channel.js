@@ -72,6 +72,9 @@ function WebSocket(appKey, token) {
   }
   this.onopen = function() { }
   function handleMessage(evt) {
+    if (state != OPEN) {
+      return;
+    }
     var data = JSON.parse(evt.data);
     var type = data.type;
     if (type == "msg") {
