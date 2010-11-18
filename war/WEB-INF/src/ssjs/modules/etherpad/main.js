@@ -71,7 +71,6 @@ serverhandlers.startupHandler = function() {
   importexport.onStartup();
   pro_pad_editors.onStartup();
   noprowatcher.onStartup();
-  collabroom_server.onStartup();
 };
 
 serverhandlers.resetHandler = function() {

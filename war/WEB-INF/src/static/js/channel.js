@@ -81,7 +81,9 @@ function WebSocket(appKey, token) {
       self.onmessage({data: data.msg});
     } else if (type == "disconnect") {
       try {
-        self.onmessage({data: data.msg});
+	if (data.msg) {
+          self.onmessage({data: data.msg});
+	}
       } finally {
         self.close();
       }

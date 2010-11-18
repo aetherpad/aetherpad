@@ -26,17 +26,43 @@ import("gae.datastore");
 import("gae.dsobj");
 import("gae.channel");
 
-function onStartup() {
-  execution.initTaskThreadPool("collabroom_async", 1);
-}
-
 function _doWarn(str) {
   log.warn(appjet.executionId+": "+str);
 }
 
-function _connectionsTable() {
-  return "COLLABROOM_CONNECTIONS";
+function _memcache() {
+  // increment "version number" of namespace
+  // to essentially clear all connections
+  // when uploading a new app version
+  return memcache.ns("collabroom_server-1");
 }
+
+// helper functions that treat the memcache key
+// as a JavaScript value, by making it a value
+// in a JSON-stringified object
+function _getObj(key) {
+  var value = _memcache().get(key);
+  if (value === null) {
+    return null;
+  }
+  else {
+    return fastJSON.parse(value).x;
+  }
+}
+function _performAtomicObj(key, func, initialValue) {
+  _memcache().performAtomic(key, function(json) {
+    return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
+  }, fastJSON.stringify({x:initialValue}));
+}
+
+function getConnections(padId, roomType) {
+  return _getObj(padId+","+roomType) || {};
+}
+
+function modifyConnections(padId, roomType, func) {
+  _performAtomicObj(padId+","+roomType, func, {});
+}
+
 
 function _putConnection(connection) {
   var connectionDS = {
@@ -88,45 +114,41 @@ function sendMessage(connectionId, msg) {
   var connection = _getConnection(connectionId);
   if (connection) {
     _sendMessageToSocket(connection.socketId, msg);
-//    if (! comet.isConnected(connection.socketId)) {
-//      // defunct socket, disconnect (later)
-//      execution.scheduleTask("collabroom_async",
-//                             "collabRoomDisconnectSocket",
-//                             0, [connection.id,
-//                                 connection.socketId]);
-//    }
   }
 }
 
-function _sendMessageToSocket(socketId, msg) {
+function _sendMessageToSocket(socketId, msg, andDisconnect) {
   var msgString = fastJSON.stringify({type: "COLLABROOM", data: msg});
-  channel.sendMessage(socketId, msgString);
-}
-
-function disconnectDefunctSocket(connectionId, socketId) {
-  var connection = _getConnection(connectionId);
-  if (connection && connection.socketId == socketId) {
-    removeRoomConnection(connectionId);
+  if (andDisconnect) {
+    channel.sendDisconnect(socketId, msgString);
+  }
+  else {
+    channel.sendMessage(socketId, msgString);
   }
 }
+
+// function disconnectDefunctSocket(connectionId, socketId) {
+//   var connection = _getConnection(connectionId);
+//   if (connection && connection.socketId == socketId) {
+//     _removeRoomConnection(connectionId);
+//   }
+// }
 
 function _bootSocket(socketId, reason) {
-  if (reason) {
-    _sendMessageToSocket(socketId,
-                         {type: "DISCONNECT_REASON", reason: reason});
-  }
-  //comet.disconnect(socketId);
+  _sendMessageToSocket(socketId,
+                       {type: "DISCONNECT_REASON", reason: reason},
+		       true);
 }
 
 function bootConnection(connectionId, reason) {
   var connection = _getConnection(connectionId);
   if (connection) {
     _bootSocket(connection.socketId, reason);
-    removeRoomConnection(connectionId);
+    _removeRoomConnection(connectionId);
   }
 }
 
-function getCallbacksForRoom(roomName, roomType) {
+function _getCallbacksForRoom(roomName, roomType) {
   var emptyCallbacks = {};
   emptyCallbacks.introduceUsers =
     function (joiningConnection, existingConnection) {};
@@ -153,9 +175,9 @@ function getCallbacksForRoom(roomName, roomType) {
 
 // roomName must be globally unique, just within roomType;
 // data must have a userInfo.userId
-function addRoomConnection(roomName, roomType,
+function _addRoomConnection(roomName, roomType,
                            connectionId, socketId, data) {
-  var callbacks = getCallbacksForRoom(roomName, roomType);
+  var callbacks = _getCallbacksForRoom(roomName, roomType);
 
   bootConnection(connectionId, "userdup");
 
@@ -186,12 +208,12 @@ function addRoomConnection(roomName, roomType,
   return joiningConnection;
 }
 
-function removeRoomConnection(connectionId) {
+function _removeRoomConnection(connectionId) {
   var leavingConnection = _getConnection(connectionId);
   if (leavingConnection) {
     var roomName = leavingConnection.roomName;
     var roomType = leavingConnection.type;
-    var callbacks = getCallbacksForRoom(roomName, roomType);
+    var callbacks = _getCallbacksForRoom(roomName, roomType);
 
     _removeConnection(leavingConnection);
 
@@ -216,6 +238,8 @@ function getRoomConnections(roomName) {
 }
 
 function getAllRoomsOfType(roomType) {
+  return [];
+/*
   var connections =
     dsobj.selectMulti(_connectionsTable(),
                        {type: roomType},
@@ -233,6 +257,7 @@ function getAllRoomsOfType(roomType) {
     }
   });
   return array;
+*/
 }
 
 function getSocketConnectionId(socketId) {
@@ -266,7 +291,7 @@ function handleComet(cometOp, cometId, msg) {
 
   if (cometEvent == "disconnect") {
     if (messageConnectionId) {
-      removeRoomConnection(messageConnectionId);
+      _removeRoomConnection(messageConnectionId);
     }
   }
   else if (cometEvent == "message") {
@@ -278,11 +303,11 @@ function handleComet(cometOp, cometId, msg) {
       var connectionId = messageSocketId;
       var clientReadyData = requireTruthy(msg.data, 12);
 
-      var callbacks = getCallbacksForRoom(roomName, roomType);
+      var callbacks = _getCallbacksForRoom(roomName, roomType);
       var userInfo =
         requireTruthy(callbacks.handleConnect(clientReadyData), 13);
 
-      var newConnection = addRoomConnection(roomName, roomType,
+      var newConnection = _addRoomConnection(roomName, roomType,
                                             connectionId, socketId,
                                             {userInfo: userInfo});
 
@@ -292,7 +317,7 @@ function handleComet(cometOp, cometId, msg) {
       if (messageConnectionId) {
         var connection = getConnection(messageConnectionId);
         if (connection) {
-          var callbacks = getCallbacksForRoom(
+          var callbacks = _getCallbacksForRoom(
             connection.roomName, connection.type);
           callbacks.handleMessage(connection, msg);
         }

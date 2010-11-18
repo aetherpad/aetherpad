@@ -49,7 +49,8 @@ function sendMessageBatch(appKeyArray, message) {
 }
 
 /**
- * Asks the client to close the connection with an optional message.
+ * Asks the client to close the connection with an optional message
+ * to be delivered on the client first.
  */
 function sendDisconnect(appKey, message) {
   var wrappedMessage = fastJSON.stringify({type: "disconnect", msg: message});
