@@ -543,7 +543,7 @@ function getRoomCallbacks(roomName) {
       model.accessPadGlobal(_roomToPadId(roomName), function(pad) {
         _handlePadUserInfo(pad, data.userInfo);
         padevents.onUserJoin(pad, data.userInfo);
-        readonly_server.updateUserInfo(pad, data.userInfo);
+        //XXX readonly_server.updateUserInfo(pad, data.userInfo);
       });
     };
   callbacks.onRemoveConnection =
@@ -645,7 +645,7 @@ function _updateDocumentConnectionUserInfo(pad, socketId, userInfo) {
 
     _handlePadUserInfo(pad, userInfo);
     padevents.onUserInfoChange(pad, userInfo);
-    readonly_server.updateUserInfo(pad, userInfo);
+    //XXX readonly_server.updateUserInfo(pad, userInfo);
   }
 }
 

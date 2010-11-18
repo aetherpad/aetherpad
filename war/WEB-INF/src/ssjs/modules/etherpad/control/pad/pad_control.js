@@ -434,7 +434,7 @@ function render_saverevision_post() {
     }
     var savedRev = revisions.saveNewRevision(pad, savedBy, savedById,
                                              revNum);
-    readonly_server.broadcastNewRevision(pad, savedRev);
+    //XXX readonly_server.broadcastNewRevision(pad, savedRev);
     response.setContentType('text/x-json');
     response.write(fastJSON.stringify(revisions.getRevisionList(pad)));
   });

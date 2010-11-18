@@ -142,9 +142,9 @@ function getCallbacksForRoom(roomName, roomType) {
   if (roomType == collab_server.PADPAGE_ROOMTYPE) {
     return collab_server.getRoomCallbacks(roomName, emptyCallbacks);
   }
-  else if (roomType == readonly_server.PADVIEW_ROOMTYPE) {
+  /*else if (roomType == readonly_server.PADVIEW_ROOMTYPE) {
     return readonly_server.getRoomCallbacks(roomName, emptyCallbacks);
-  }
+  }*/ //XXX not ported yet
   else {
     //java.lang.System.out.println("UNKNOWN ROOMTYPE: "+roomType);
     return emptyCallbacks;

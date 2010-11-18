@@ -51,7 +51,6 @@ import("etherpad.pro.pro_config");
 
 import("etherpad.collab.collabroom_server");
 import("etherpad.collab.collab_server");
-import("etherpad.collab.readonly_server");
 import("etherpad.collab.genimg");
 import("etherpad.pad.model");
 import("etherpad.pad.dbwriter");
