@@ -53,7 +53,7 @@ function WebSocket(appKey, token) {
     makeChannel(function() {
       var handler = {};//HACK new goog.appengine.Socket.Handler();
       handler.onopen = function() { handleOpen(); }
-      handler.onmessage = function(evt) { self.onmessage(evt); }
+      handler.onmessage = function(evt) { handleMessage(evt); }
       handler.onerror = function(error) { handleError(error); }
       handler.onclose = function() { handleClose(); }
 
@@ -71,15 +71,32 @@ function WebSocket(appKey, token) {
     self.onopen();
   }
   this.onopen = function() { }
+  function handleMessage(evt) {
+    var data = JSON.parse(evt.data);
+    var type = data.type;
+    if (type == "msg") {
+      self.onmessage({data: data.msg});
+    } else if (type == "disconnect") {
+      try {
+        self.onmessage({data: data.msg});
+      } finally {
+        self.close();
+      }
+    }
+  }
   this.onmessage = function(evt) { }
   function handleError(error) {
     state = CLOSED;
-    self.onerror(error);
+    try {
+      self.onerror(error);
+    } finally {
+      self.onclose({reconnect: true, error: error});
+    }
   }
   this.onerror = function(error) { }
-  function handleClose() {
+  function handleClose(data) {
     state = CLOSED;
-    self.onclose();
+    self.onclose(data);
   }
   this.onclose = function() { }
 
@@ -87,7 +104,7 @@ function WebSocket(appKey, token) {
     if (socket) {
       socket.close();
       socket = undefined;
-      state = CLOSED;
+      handleClose({reconnect: false});
     }
   }
 
