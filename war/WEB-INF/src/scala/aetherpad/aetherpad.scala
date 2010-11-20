@@ -26,9 +26,15 @@ class AppJetEngineServlet extends HttpServlet {
         case appjet.AppGeneratedStopException => { }
         case e: appjet.JSRuntimeException => {
           ec.response.overwriteOutputWithError(500, ExceptionUtils.javascriptStackTrace(e));
+	  if (! appjet.Util.isProduction) {
+	    e.printStackTrace
+	  }
         }
         case e: Throwable => {
           ec.response.overwriteOutputWithError(500, ExceptionUtils.javaStackTrace(e));
+	  if (! appjet.Util.isProduction) {
+	    e.printStackTrace
+	  }
         }
       } finally {
         ec.response.print();      
