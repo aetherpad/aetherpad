@@ -25,6 +25,9 @@ jimport("java.util.concurrent.CopyOnWriteArraySet");
 import("gae.datastore");
 import("gae.dsobj");
 import("gae.channel");
+import("jsutils.eachProperty");
+import("jsutils.keys");
+import("gae.memcache");
 
 function _doWarn(str) {
   log.warn(appjet.executionId+": "+str);
@@ -50,9 +53,10 @@ function _getObj(key) {
   }
 }
 function _performAtomicObj(key, func, initialValue) {
-  _memcache().performAtomic(key, function(json) {
-    return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
-  }, fastJSON.stringify({x:initialValue}));
+  return fastJSON.parse(
+    _memcache().performAtomic(key, function(json) {
+      return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
+    }, fastJSON.stringify({x:initialValue}))).x;
 }
 
 function getConnections(padId, roomType) {
@@ -60,61 +64,131 @@ function getConnections(padId, roomType) {
 }
 
 function modifyConnections(padId, roomType, func) {
-  _performAtomicObj(padId+","+roomType, func, {});
+  // func can either mutate the connections in-place
+  // or return a new map
+  return _performAtomicObj(
+    padId+","+roomType,
+    function(conns) {
+      return func(conns) || conns;
+    },
+    {});
 }
 
-
-function _putConnection(connection) {
-  var connectionDS = {
-    id: connection.id,
-    roomName: connection.roomName,
-    type: connection.type,
-    socketId: connection.socketId
-  };
-  if (connection.data) {
-    connectionDS.data =
-      fastJSON.stringify(connection.data);
-  }
-
-  dsobj.insert(_connectionsTable(), connectionDS);
+function getConnection(padId, roomType, socketId) {
+  return getConnections(padId, roomType)[socketId] || null;
 }
 
-function _removeConnection(connection) {
-  dsobj.deleteRows(_connectionsTable(), {id: connection.id});
+function removeConnection(padId, roomType, socketId) {
+  return modifyConnections(padId, roomType, function(conns) {
+    delete conn[socketId];
+  });
 }
 
-function _updateConnectionData(connectionId, data) {
-  dsobj.updateSingle(_connectionsTable(),
-                      {id: connectionId},
-                      {data: fastJSON.stringify(data)});
+function updateConnectionData(padId, roomType, socketId, data) {
+  modifyConnections(padId, roomType, function(conns) {
+    if (conns[socketId]) {
+      conns[socketId].data = data;
+    }
+  });
 }
 
-function _modDSConnection(connection) {
-  if (connection && connection.data) {
-    connection.data = fastJSON.parse(connection.data);
-  }
-  return connection;
+function _addConnection(padId, roomType,
+                        joiningSocket, data) {
+
+  var joiningConnection = {data:data, socketId:joiningSocket};
+  var joiningUser = data.userInfo.userId;
+  var socketsToBoot = [];
+
+  var connections = modifyConnections(padId, roomType, function(conns) {
+    eachProperty(conns, function(socketId, conn) {
+      if (conn.data.userInfo.userId == joiningUser) {
+	socketsToBoot.push(socketId);
+      }
+    });
+    socketsToBoot.forEach(function(socketId) {
+      delete conns[socketId];
+    });
+
+    conns[joiningSocket] = joiningConnection;
+  });
+
+  socketsToBoot.forEach(function(socketId) {
+    _bootSocket(socketId, "userdup");
+  });
+
+  var callbacks = _getCallbacksForRoom(padId, roomType);
+  callbacks.introduceUsers(connections);
+  callbacks.onAddConnection(data);
+
+  return joiningConnection;
 }
 
-function _getConnection(connectionId) {
-  var connection =
-    dsobj.selectSingle(_connectionsTable(), {id: connectionId});
-
-  return _modDSConnection(connection);
+function bootConnection(padId, roomType, socketId, reason) {
+  _bootSocket(socketId, reason);
+  return removeConnection(padId, roomType, socketId);
 }
 
-function _getConnections(roomName) {
-  var connections =
-    dsobj.selectMulti(_connectionsTable(), {roomName:roomName});
+// function _putConnection(connection) {
+//   var connectionDS = {
+//     id: connection.id,
+//     roomName: connection.roomName,
+//     type: connection.type,
+//     socketId: connection.socketId
+//   };
+//   if (connection.data) {
+//     connectionDS.data =
+//       fastJSON.stringify(connection.data);
+//   }
 
-  return connections.map(_modDSConnection);
+//   dsobj.insert(_connectionsTable(), connectionDS);
+// }
+
+// function _removeConnection(connection) {
+//   dsobj.deleteRows(_connectionsTable(), {id: connection.id});
+// }
+
+// function _updateConnectionData(connectionId, data) {
+//   dsobj.updateSingle(_connectionsTable(),
+//                       {id: connectionId},
+//                       {data: fastJSON.stringify(data)});
+// }
+
+// function _modDSConnection(connection) {
+//   if (connection && connection.data) {
+//     connection.data = fastJSON.parse(connection.data);
+//   }
+//   return connection;
+// }
+
+// function _getConnection(connectionId) {
+//   var connection =
+//     dsobj.selectSingle(_connectionsTable(), {id: connectionId});
+
+//   return _modDSConnection(connection);
+// }
+
+// function _getConnections(roomName) {
+//   var connections =
+//     dsobj.selectMulti(_connectionsTable(), {roomName:roomName});
+
+//   return connections.map(_modDSConnection);
+// }
+
+// function sendMessage(connectionId, msg) {
+//   var connection = _getConnection(connectionId);
+//   if (connection) {
+//     _sendMessageToSocket(connection.socketId, msg);
+//   }
+// }
+
+function sendRoomMessage(padId, roomType, msg) {
+  var connections = getConnections(padId, roomType);
+  var msgString = fastJSON.stringify({type: "COLLABROOM", data: msg});
+  channel.sendMessageBatch(keys(connections), msgString);
 }
 
-function sendMessage(connectionId, msg) {
-  var connection = _getConnection(connectionId);
-  if (connection) {
-    _sendMessageToSocket(connection.socketId, msg);
-  }
+function sendMessage(socketId, msg) {
+  _sendMessageToSocket(socketId, msg);
 }
 
 function _sendMessageToSocket(socketId, msg, andDisconnect) {
@@ -127,33 +201,32 @@ function _sendMessageToSocket(socketId, msg, andDisconnect) {
   }
 }
 
-// function disconnectDefunctSocket(connectionId, socketId) {
-//   var connection = _getConnection(connectionId);
-//   if (connection && connection.socketId == socketId) {
-//     _removeRoomConnection(connectionId);
-//   }
-// }
+// // function disconnectDefunctSocket(connectionId, socketId) {
+// //   var connection = _getConnection(connectionId);
+// //   if (connection && connection.socketId == socketId) {
+// //     _removeRoomConnection(connectionId);
+// //   }
+// // }
 
 function _bootSocket(socketId, reason) {
   _sendMessageToSocket(socketId,
                        {type: "DISCONNECT_REASON", reason: reason},
-		       true);
+ 		       true);
 }
 
-function bootConnection(connectionId, reason) {
-  var connection = _getConnection(connectionId);
-  if (connection) {
-    _bootSocket(connection.socketId, reason);
-    _removeRoomConnection(connectionId);
-  }
-}
+// function bootConnection(connectionId, reason) {
+//   var connection = _getConnection(connectionId);
+//   if (connection) {
+//     _bootSocket(connection.socketId, reason);
+//     _removeRoomConnection(connectionId);
+//   }
+// }
 
-function _getCallbacksForRoom(roomName, roomType) {
+function _getCallbacksForRoom(padId, roomType) {
   var emptyCallbacks = {};
-  emptyCallbacks.introduceUsers =
-    function (joiningConnection, existingConnection) {};
+  emptyCallbacks.introduceUsers = function (connections) {};
   emptyCallbacks.extroduceUsers =
-    function extroduceUsers(leavingConnection, existingConnection) {};
+    function extroduceUsers(leavingConnection) {};
   emptyCallbacks.onAddConnection = function (joiningData) {};
   emptyCallbacks.onRemoveConnection = function (leavingData) {};
   emptyCallbacks.handleConnect =
@@ -162,7 +235,7 @@ function _getCallbacksForRoom(roomName, roomType) {
   emptyCallbacks.handleMessage = function(connection, msg) {};
 
   if (roomType == collab_server.PADPAGE_ROOMTYPE) {
-    return collab_server.getRoomCallbacks(roomName, emptyCallbacks);
+    return collab_server.getRoomCallbacks(padId, emptyCallbacks);
   }
   /*else if (roomType == readonly_server.PADVIEW_ROOMTYPE) {
     return readonly_server.getRoomCallbacks(roomName, emptyCallbacks);
@@ -173,110 +246,109 @@ function _getCallbacksForRoom(roomName, roomType) {
   }
 }
 
-// roomName must be globally unique, just within roomType;
-// data must have a userInfo.userId
-function _addRoomConnection(roomName, roomType,
-                           connectionId, socketId, data) {
-  var callbacks = _getCallbacksForRoom(roomName, roomType);
+// // roomName must be globally unique, just within roomType;
+// // data must have a userInfo.userId
+// function _addRoomConnection(roomName, roomType,
+//                            connectionId, socketId, data) {
+//   var callbacks = _getCallbacksForRoom(roomName, roomType);
 
-  bootConnection(connectionId, "userdup");
+//   bootConnection(connectionId, "userdup");
 
-  var joiningConnection = {id:connectionId,
-                           roomName:roomName,
-                           type:roomType,
-                           socketId:socketId,
-                           data:data};
-  _putConnection(joiningConnection);
+//   var joiningConnection = {id:connectionId,
+//                            roomName:roomName,
+//                            type:roomType,
+//                            socketId:socketId,
+//                            data:data};
+//   _putConnection(joiningConnection);
 
-  var connections = _getConnections(roomName);
-  var joiningUser = data.userInfo.userId;
+//   var connections = _getConnections(roomName);
+//   var joiningUser = data.userInfo.userId;
 
-  connections.forEach(function(connection) {
-    if (connection.socketId != socketId) {
-      var user = connection.data.userInfo.userId;
-      if (user == joiningUser) {
-        bootConnection(connection.id, "userdup");
-      }
-      else {
-        callbacks.introduceUsers(joiningConnection, connection);
-      }
-    }
-  });
+//   connections.forEach(function(connection) {
+//     if (connection.socketId != socketId) {
+//       var user = connection.data.userInfo.userId;
+//       if (user == joiningUser) {
+//         bootConnection(connection.id, "userdup");
+//       }
+//       else {
+//         callbacks.introduceUsers(joiningConnection, connection);
+//       }
+//     }
+//   });
 
-  callbacks.onAddConnection(data);
+//   callbacks.onAddConnection(data);
 
-  return joiningConnection;
-}
+//   return joiningConnection;
+// }
 
-function _removeRoomConnection(connectionId) {
-  var leavingConnection = _getConnection(connectionId);
+function _removeUserSocket(padId, roomType, socketId) {
+  var leavingConnection = getConnection(padId, roomType, socketId);
+
   if (leavingConnection) {
-    var roomName = leavingConnection.roomName;
-    var roomType = leavingConnection.type;
-    var callbacks = _getCallbacksForRoom(roomName, roomType);
+    removeConnection(padId, roomType, socketId);
 
-    _removeConnection(leavingConnection);
+    var callbacks = _getCallbacksForRoom(padId, roomType);
 
-    _getConnections(roomName).forEach(function (connection) {
-      callbacks.extroduceUsers(leavingConnection, connection);
-    });
-
+    callbacks.extroduceUsers(leavingConnection);
     callbacks.onRemoveConnection(leavingConnection.data);
   }
 }
 
-function getConnection(connectionId) {
-  return _getConnection(connectionId);
+// function getConnection(connectionId) {
+//   return _getConnection(connectionId);
+// }
+
+// function updateRoomConnectionData(connectionId, data) {
+//   _updateConnectionData(connectionId, data);
+// }
+
+function getRoomConnections(padId, roomType) {
+  var conns = [];
+  eachProperty(getConnections(padId, roomType),
+	       function(socketId, conn) {
+		 conns.push(conn);
+	       });
+  return conns;
 }
 
-function updateRoomConnectionData(connectionId, data) {
-  _updateConnectionData(connectionId, data);
-}
+// function getAllRoomsOfType(roomType) {
+//   return [];
+// /*
+//   var connections =
+//     dsobj.selectMulti(_connectionsTable(),
+//                        {type: roomType},
+//                        {orderBy:"roomName"});
 
-function getRoomConnections(roomName) {
-  return _getConnections(roomName);
-}
+//   var array = [];
+//   connections.forEach(function (c) {
+//     var roomName = c.roomName;
+//     // connections are sorted by roomName,
+//     // so duplicate roomNames are consecutive
+//     // in 'connections'
+//     if (array.length == 0 ||
+//         array[array.length-1] != roomName) {
+//       array.push(roomName);
+//     }
+//   });
+//   return array;
+// */
+// }
 
-function getAllRoomsOfType(roomType) {
-  return [];
-/*
-  var connections =
-    dsobj.selectMulti(_connectionsTable(),
-                       {type: roomType},
-                       {orderBy:"roomName"});
+// function getSocketConnectionId(socketId) {
+//   var connection =
+//     dsobj.selectSingle(_connectionsTable(),
+//                         {socketId: socketId});
 
-  var array = [];
-  connections.forEach(function (c) {
-    var roomName = c.roomName;
-    // connections are sorted by roomName,
-    // so duplicate roomNames are consecutive
-    // in 'connections'
-    if (array.length == 0 ||
-        array[array.length-1] != roomName) {
-      array.push(roomName);
-    }
-  });
-  return array;
-*/
-}
+//   return (connection && connection.id) || null;
+// }
 
-function getSocketConnectionId(socketId) {
-  var connection =
-    dsobj.selectSingle(_connectionsTable(),
-                        {socketId: socketId});
-
-  return (connection && connection.id) || null;
-}
-
-function handleComet(cometOp, cometId, msg) {
+function handleComet(cometOp, cometId, wrappedMsg) {
   var cometEvent = cometOp;
 
   function requireTruthy(x, id) {
     if (!x) {
       _doWarn("Collab operation rejected due to missing value, case "+id);
-      if (messageSocketId) {
-        //comet.disconnect(messageSocketId);
-      }
+      channel.sendDisconnect(socketId);
       response.stop();
     }
     return x;
@@ -286,41 +358,33 @@ function handleComet(cometOp, cometId, msg) {
     response.stop();
   }
 
-  var messageSocketId = requireTruthy(cometId, 2);
-  var messageConnectionId = getSocketConnectionId(messageSocketId);
+  var socketId = requireTruthy(cometId, 2);
+  var msg = wrappedMsg.data;
+  var padId = requireTruthy(wrappedMsg.padId, 4);
+  var roomType = requireTruthy(wrappedMsg.roomType, 11);
 
   if (cometEvent == "disconnect") {
-    if (messageConnectionId) {
-      _removeRoomConnection(messageConnectionId);
-    }
+    _removeUserSocket(padId, roomType, socketId);
   }
   else if (cometEvent == "message") {
     if (msg.type == "CLIENT_READY") {
-      var roomType = requireTruthy(msg.roomType, 4);
-      var roomName = requireTruthy(msg.roomName, 11);
-
-      var socketId = messageSocketId;
-      var connectionId = messageSocketId;
       var clientReadyData = requireTruthy(msg.data, 12);
 
-      var callbacks = _getCallbacksForRoom(roomName, roomType);
+      var callbacks = _getCallbacksForRoom(padId, roomType);
+
       var userInfo =
         requireTruthy(callbacks.handleConnect(clientReadyData), 13);
 
-      var newConnection = _addRoomConnection(roomName, roomType,
-                                            connectionId, socketId,
-                                            {userInfo: userInfo});
+      var newConnection = _addConnection(padId, roomType,
+                                         socketId, {userInfo: userInfo});
 
       callbacks.clientReady(newConnection, clientReadyData);
     }
     else {
-      if (messageConnectionId) {
-        var connection = getConnection(messageConnectionId);
-        if (connection) {
-          var callbacks = _getCallbacksForRoom(
-            connection.roomName, connection.type);
-          callbacks.handleMessage(connection, msg);
-        }
+      var connection = getConnection(padId, roomType, socketId);
+      if (connection) {
+	var callbacks = _getCallbacksForRoom(padId, roomType);
+	callbacks.handleMessage(connection, msg);
       }
     }
   }

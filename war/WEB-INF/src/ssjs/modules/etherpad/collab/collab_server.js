@@ -37,14 +37,6 @@ function onStartup() {
 
 }
 
-function _padIdToRoom(padId) {
-  return "padpage/"+padId;
-}
-
-function _roomToPadId(roomName) {
-  return roomName.substring(roomName.indexOf("/")+1);
-}
-
 function removeFromMemory(pad) {
   // notification so we can free stuff
   if (getNumConnections(pad) == 0) {
@@ -54,7 +46,7 @@ function removeFromMemory(pad) {
 }
 
 function _getPadConnections(pad) {
-  return getRoomConnections(_padIdToRoom(pad.getId()));
+  return getRoomConnections(pad.getId(), PADPAGE_ROOMTYPE);
 }
 
 function guestKnock(globalPadId, guestId, displayName) {
@@ -275,7 +267,8 @@ function applyMissedChanges(pad, missedChanges) {
 
 function getAllPadsWithConnections() {
   // returns array of global pad id strings
-  return getAllRoomsOfType(PADPAGE_ROOMTYPE).map(_roomToPadId);
+  return [];
+  //XXX return getAllRoomsOfType(PADPAGE_ROOMTYPE).map(_roomToPadId);
 }
 
 function broadcastServerMessage(msgObj) {
@@ -436,7 +429,7 @@ function bootUsersFromPad(pad, reason, userInfoFilter) {
   connections.forEach(function(connection) {
     if ((! userInfoFilter) || userInfoFilter(connection.data.userInfo)) {
       bootedUserInfos.push(connection.data.userInfo);
-      bootConnection(connection.id);
+      bootConnectionOLD(connection.id);
     }
   });
   return bootedUserInfos;
@@ -466,11 +459,6 @@ function dumpStorageToString(pad) {
 }
 
 function _serverDebug(msg) { /* nothing */ }
-
-function _accessConnectionPad(connection, accessType, padFunc, dontRequirePad) {
-  return _accessCollabPad(_roomToPadId(connection.roomName), accessType,
-                          padFunc, dontRequirePad);
-}
 
 function _accessCollabPad(padId, accessType, padFunc, dontRequirePad) {
   if (! padId) {
@@ -514,33 +502,43 @@ function _handlePadUserInfo(pad, userInfo) {
   padusers.notifyUserData(data);
 }
 
-function _sendUserInfoMessage(connectionId, type, userInfo) {
-  if (translateSpecialKey(userInfo.specialKey) != 'invisible') {
-    sendMessage(connectionId, {type: type, userInfo: userInfo });
-  }
+function _filterUserInfos(userInfos) {
+  return userInfos.filter(function (userInfo) {
+    return translateSpecialKey(userInfo.specialKey) != 'invisible';
+  });
 }
 
+function _sendUserInfoMessage(connectionId, type, userInfos) {
+  sendMessage(connectionId, {type: type,
+			     userInfos: _filterUserInfos(userInfos) });
+}
 
-function getRoomCallbacks(roomName) {
+function _sendUserInfoMessageToPad(padId, type, userInfos) {
+  sendRoomMessage(padId, PADPAGE_ROOMTYPE,
+		  {type: type, userInfos: _filterUserInfos(userInfos) });
+}
+
+function getRoomCallbacks(padId) {
   var callbacks = {};
   callbacks.introduceUsers =
-    function (joiningConnection, existingConnection) {
+    function (connections) {
       // notify users of each other
-      _sendUserInfoMessage(existingConnection.id,
-                          "USER_NEWINFO",
-                          joiningConnection.data.userInfo);
-      _sendUserInfoMessage(joiningConnection.id,
-                          "USER_NEWINFO",
-                          existingConnection.data.userInfo);
+      var userInfos = [];
+      eachProperty(connections, function(socketId, conn) {
+	userInfos.push(conn.data.userInfo);
+      });
+      _sendUserInfoMessageToPad(padId,
+				"USER_NEWINFO",
+				userInfos);
     };
   callbacks.extroduceUsers =
-    function (leavingConnection, existingConnection) {
-      _sendUserInfoMessage(existingConnection.id, "USER_LEAVE",
-                          leavingConnection.data.userInfo);
+    function (leavingConnection) {
+      _sendUserInfoMessageToPad(padId, "USER_LEAVE",
+				[leavingConnection.data.userInfo]);
     };
   callbacks.onAddConnection =
     function (data) {
-      model.accessPadGlobal(_roomToPadId(roomName), function(pad) {
+      model.accessPadGlobal(padId, function(pad) {
         _handlePadUserInfo(pad, data.userInfo);
         padevents.onUserJoin(pad, data.userInfo);
         //XXX readonly_server.updateUserInfo(pad, data.userInfo);
@@ -548,15 +546,12 @@ function getRoomCallbacks(roomName) {
     };
   callbacks.onRemoveConnection =
     function (data) {
-      model.accessPadGlobal(_roomToPadId(roomName), function(pad) {
+      model.accessPadGlobal(padId, function(pad) {
         padevents.onUserLeave(pad, data.userInfo);
       });
     };
   callbacks.handleConnect =
     function (data) {
-      if (roomName.indexOf("padpage/") != 0) {
-        return null;
-      }
       if (! (data.userInfo && data.userInfo.userId &&
              _verifyUserId(data.userInfo.userId))) {
         return null;
@@ -565,8 +560,6 @@ function getRoomCallbacks(roomName) {
     };
   callbacks.clientReady =
     function(newConnection, data) {
-      var padId = _roomToPadId(newConnection.roomName);
-
       if (data.stats) {
         log.custom("padclientstats", {padId:padId, stats:data.stats});
       }
@@ -574,36 +567,36 @@ function getRoomCallbacks(roomName) {
       var lastRev = data.lastRev;
       var isReconnectOf = data.isReconnectOf;
       var isCommitPending = !! data.isCommitPending;
-      var connectionId = newConnection.id;
+      var socketId = newConnection.socketId;
 
       newConnection.data.lastRev = lastRev;
-      updateRoomConnectionData(connectionId, newConnection.data);
+      updateConnectionData(socketId, newConnection.data);
 
       if (padutils.isProPadId(padId)) {
         pro_padmeta.accessProPad(padId, function(propad) {
           // tell client about pad title
-          sendMessage(connectionId, {type: "CLIENT_MESSAGE", payload: {
+          sendMessage(socketId, {type: "CLIENT_MESSAGE", payload: {
             type: "padtitle", title: propad.getDisplayTitle() } });
-          sendMessage(connectionId, {type: "CLIENT_MESSAGE", payload: {
+          sendMessage(socketId, {type: "CLIENT_MESSAGE", payload: {
             type: "padpassword", password: propad.getPassword() } });
         });
       }
 
       _accessExistingPad(padId, "CLIENT_READY", function(pad) {
-        sendMessage(connectionId, {type: "CLIENT_MESSAGE", payload: {
+        sendMessage(socketId, {type: "CLIENT_MESSAGE", payload: {
           type: "padoptions", options: pad.getPadOptionsObj() } });
 
-        updateClient(pad, connectionId);
+        //updateClient(pad, connectionId);
 
       });
 
       if (isCommitPending) {
         // tell client that if it hasn't received an ACCEPT_COMMIT by now, it isn't coming.
-        sendMessage(connectionId, {type:"NO_COMMIT_PENDING"});
+        sendMessage(socketId, {type:"NO_COMMIT_PENDING"});
       }
     };
   callbacks.handleMessage = function(connection, msg) {
-    _handleCometMessage(connection, msg);
+    _handleCometMessage(padId, connection, msg);
   };
   return callbacks;
 }
@@ -639,7 +632,7 @@ function _updateDocumentConnectionUserInfo(pad, socketId, userInfo) {
     _getPadConnections(pad).forEach(function(connection) {
       if (connection.socketId != updatingConnection.socketId) {
         _sendUserInfoMessage(connection.id,
-                             "USER_NEWINFO", userInfo);
+                             "USER_NEWINFO", [userInfo]);
       }
     });
 
@@ -649,17 +642,18 @@ function _updateDocumentConnectionUserInfo(pad, socketId, userInfo) {
   }
 }
 
-function _handleCometMessage(connection, msg) {
+function _handleCometMessage(padId, connection, msg) {
 
   var socketUserId = connection.data.userInfo.userId;
   if (! (socketUserId && _verifyUserId(socketUserId))) {
     // user has signed out or cleared cookies, no longer auth'ed
-    bootConnection(connection.id, "unauth");
+    bootConnection(padId, PADPAGE_ROOMTYPE,
+		   connection.socketId, "unauth");
   }
 
   if (msg.type == "USER_CHANGES") {
     try {
-      _accessConnectionPad(connection, "USER_CHANGES", function(pad) {
+      _accessCollabPad(padId, "USER_CHANGES", function(pad) {
         var baseRev = msg.baseRev;
         var wireApool = (new AttribPool()).fromJsonable(msg.apool);
         var changeset = msg.changeset;
@@ -675,7 +669,7 @@ function _handleCometMessage(connection, msg) {
     }
   }
   else if (msg.type == "USERINFO_UPDATE") {
-    _accessConnectionPad(connection, "USERINFO_UPDATE", function(pad) {
+    _accessCollabPad(padId, "USERINFO_UPDATE", function(pad) {
       var userInfo = msg.userInfo;
       // security check
       if (userInfo.userId == connection.data.userInfo.userId) {
@@ -688,7 +682,7 @@ function _handleCometMessage(connection, msg) {
     });
   }
   else if (msg.type == "CLIENT_MESSAGE") {
-    _accessConnectionPad(connection, "CLIENT_MESSAGE", function(pad) {
+    _accessCollabPad(padId, "CLIENT_MESSAGE", function(pad) {
       var payload = msg.payload;
       if (payload.authId &&
           payload.authId != connection.data.userInfo.userId) {
@@ -696,13 +690,9 @@ function _handleCometMessage(connection, msg) {
         // here it wasn't
       }
       else {
-        getRoomConnections(connection.roomName).forEach(
-          function(conn) {
-            if (conn.socketId != connection.socketId) {
-              sendMessage(conn.id,
-                          {type: "CLIENT_MESSAGE", payload: payload});
-            }
-          });
+	sendRoomMessage(padId, PADPAGE_ROOMTYPE,
+			{type: "CLIENT_MESSAGE", payload: payload,
+			 originator: msg.originator});
         padevents.onClientMessage(pad, connection.data.userInfo,
                                   payload);
       }

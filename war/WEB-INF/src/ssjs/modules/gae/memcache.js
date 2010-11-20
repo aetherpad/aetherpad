@@ -102,6 +102,7 @@ var _proto = {
   performAtomic: function(key, func, initialValue) {
     var complete = false;
     var tries = 0;
+    var newValue;
     while (! complete) {
       if (tries >= 5) {
 	throw new java.lang.RuntimeException("Too much memcache contention.");
@@ -111,11 +112,12 @@ var _proto = {
 	this.putOnlyIfNotPresent(key, initialValue);
       }
       else {
-	var newValue = func(iv.value);
+	newValue = func(iv.value);
 	complete = this.putIfUntouched(key, iv, newValue);
 	tries++;
       }
     }
+    return newValue;
   }
 };
 

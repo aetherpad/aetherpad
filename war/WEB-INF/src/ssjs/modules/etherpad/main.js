@@ -186,7 +186,7 @@ serverhandlers.cometHandler = function(op, id, data) {
     }
   }
   if(wrapper.type == "COLLABROOM") {
-    collabroom_server.handleComet(op, id, wrapper.data);
+    collabroom_server.handleComet(op, id, wrapper);
   } else {
     //println("incorrectly wrapped data: " + wrapper['type']);
   }

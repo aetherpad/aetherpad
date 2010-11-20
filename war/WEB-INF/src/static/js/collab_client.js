@@ -177,8 +177,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       socket.onclose = wrapRecordingErrors("socket.onclose", handleSocketClosed);
       socket.onopen = wrapRecordingErrors("socket.onopen", function() {
         setChannelState("CONNECTED");
-        var msg = { type:"CLIENT_READY", roomType:'padpage',
-                    roomName:'padpage/'+globalPadId,
+        var msg = { type:"CLIENT_READY",
                     data: {
                       lastRev:rev,
                       userInfo:userSet[userId],
@@ -212,7 +211,9 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
   setTimeout(setUpSocketWhenWindowLoaded, 0);
 
   function sendMessage(msg) {
-    socket.send(JSON.stringify({type: "COLLABROOM", data: msg}));
+    socket.send(JSON.stringify({type: "COLLABROOM", data: msg,
+				padId: globalPadId,
+				roomType: 'padpage'}));
   }
 
   function wrapRecordingErrors(catcher, func) {
@@ -240,6 +241,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
   function handleMessageFromServer(evt) {
     if (! socket) return;
     if (! evt.data) return;
+    //console.log("MESSAGE: "+evt.data);
     var wrapper = JSON.parse(evt.data);
     if(wrapper.type != "COLLABROOM") return;
     var msg = wrapper.data;
@@ -282,35 +284,41 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
       }
     }
     else if (msg.type == "USER_NEWINFO") {
-      var userInfo = msg.userInfo;
-      var id = userInfo.userId;
-      if (userSet[id]) {
-        userSet[id] = userInfo;
-        callbacks.onUpdateUserInfo(userInfo);
-        dmesgUsers();
-      }
-      else {
-        userSet[id] = userInfo;
-        callbacks.onUserJoin(userInfo);
-        dmesgUsers();
-      }
-      tellAceActiveAuthorInfo(userInfo);
+      $.each(msg.userInfos, function() {
+	var userInfo = this;
+	var id = userInfo.userId;
+	if (userSet[id]) {
+          userSet[id] = userInfo;
+          callbacks.onUpdateUserInfo(userInfo);
+          dmesgUsers();
+	}
+	else {
+          userSet[id] = userInfo;
+          callbacks.onUserJoin(userInfo);
+          dmesgUsers();
+	}
+	tellAceActiveAuthorInfo(userInfo);
+      });
     }
     else if (msg.type == "USER_LEAVE") {
-      var userInfo = msg.userInfo;
-      var id = userInfo.userId;
-      if (userSet[id]) {
-        delete userSet[userInfo.userId];
-        fadeAceAuthorInfo(userInfo);
-        callbacks.onUserLeave(userInfo);
-        dmesgUsers();
-      }
+      $.each(msg.userInfos, function() {
+	var userInfo = this;
+	var id = userInfo.userId;
+	if (userSet[id]) {
+          delete userSet[userInfo.userId];
+          fadeAceAuthorInfo(userInfo);
+          callbacks.onUserLeave(userInfo);
+          dmesgUsers();
+	}
+      });
     }
     else if (msg.type == "DISCONNECT_REASON") {
       appLevelDisconnectReason = msg.reason;
     }
     else if (msg.type == "CLIENT_MESSAGE") {
-      callbacks.onClientMessage(msg.payload);
+      if (msg.originator != socketId) {
+	callbacks.onClientMessage(msg.payload);
+      }
     }
     else if (msg.type == "SERVER_MESSAGE") {
       callbacks.onServerMessage(msg.payload);
@@ -451,7 +459,7 @@ function getCollabClient(ace2editor, serverVars, initialUserInfo, options) {
   }
 
   function sendClientMessage(msg) {
-    sendMessage({ type: "CLIENT_MESSAGE", payload: msg });
+    sendMessage({ type: "CLIENT_MESSAGE", payload: msg, originator: socketId });
   }
 
   function getCurrentRevisionNumber() {
