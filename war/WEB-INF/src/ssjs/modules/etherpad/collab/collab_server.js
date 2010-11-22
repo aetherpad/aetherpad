@@ -624,17 +624,14 @@ function getSpecialKey(name) {
 }
 
 function _updateDocumentConnectionUserInfo(pad, socketId, userInfo) {
-  var connectionId = getSocketConnectionId(socketId);
-  if (connectionId) {
-    var updatingConnection = getConnection(connectionId);
-    updatingConnection.data.userInfo = userInfo;
-    updateRoomConnectionData(connectionId, updatingConnection.data);
-    _getPadConnections(pad).forEach(function(connection) {
-      if (connection.socketId != updatingConnection.socketId) {
-        _sendUserInfoMessage(connection.id,
-                             "USER_NEWINFO", [userInfo]);
-      }
-    });
+  var padId = pad.getId();
+  var conn = getConnection(padId, PADPAGE_ROOMTYPE, socketId);
+  if (conn) {
+
+    _sendUserInfoMessageToPad(padId, "USER_NEWINFO", [userInfo]);
+
+    conn.data.userInfo = userInfo;
+    updateConnectionData(padId, PADPAGE_ROOMTYPE, socketId, conn.data);
 
     _handlePadUserInfo(pad, userInfo);
     padevents.onUserInfoChange(pad, userInfo);
