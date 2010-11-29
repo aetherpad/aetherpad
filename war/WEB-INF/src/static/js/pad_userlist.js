@@ -111,7 +111,8 @@ var paduserlist = (function() {
     }
     function handleRowNode(tr, data) {
       if (data.titleText) {
-        tr.attr('title', data.titleText);
+        var titleText = data.titleText;
+        setTimeout(function() { tr.attr('title', titleText); }, 0);
       }
       else {
         tr.removeAttr('title');
@@ -259,7 +260,6 @@ var paduserlist = (function() {
           node.remove();
         }
       }
-
       handleOtherUserInputs();
 
       return (rowsFadingIn.length > 0) || (rowsFadingOut.length > 0); // is more to do
