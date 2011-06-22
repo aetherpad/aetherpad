@@ -24,6 +24,7 @@ jimport("com.google.appengine.api.datastore.FetchOptions");
 jimport("com.google.appengine.api.datastore.Key");
 jimport("com.google.appengine.api.datastore.KeyFactory");
 jimport("com.google.appengine.api.datastore.Query");
+jimport("com.google.appengine.api.datastore.Text");
 
 function inTransaction(f) {
   return datastore.inTransaction(null, f);
@@ -48,6 +49,8 @@ function _withCache(name, fn) {
 function _getDatastoreValue(v) {
   if (v.valueOf && v.getDate && v.getHours) {
     return new java.util.Date(+v);
+  } else if (typeof(v) == 'string' && v.length > 500) {
+    return new Text(v);
   } else {
     return v;
   }
@@ -65,7 +68,8 @@ function _entityToJsObj(entity) {
   var props = entity.getProperties().entrySet().iterator();
   while (props.hasNext()) {
     var entry = props.next();
-    resultObj[entry.getKey()] = entry.getValue();
+    value = entry.getValue();
+    resultObj[entry.getKey()] = (value instanceof Text ? value.getValue() : value);
   }
   if (! resultObj.id) {
     var key = entity.getKey();
@@ -131,6 +135,11 @@ function insert(tableName, obj) {
   var txn = transaction ? transaction.underlying : null;
   var parentKey = transaction ? transaction.other : null;
   var key = _toKey(kind, obj.id, parentKey);
+
+  if (obj.json == "{\"x\":{}}") {
+    java.lang.System.err.println("wtf?");
+    java.lang.Thread.dumpStack();
+  }
 
   var entity = (key ? new Entity(key) :
                 (parentKey ?

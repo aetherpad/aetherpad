@@ -131,12 +131,9 @@ function applyUserChanges(pad, baseRev, changeset, optSocketId, optAuthor) {
 
   var thisAuthor = '';
   if (optSocketId) {
-    var connectionId = getSocketConnectionId(optSocketId);
-    if (connectionId) {
-      var connection = getConnection(connectionId);
-      if (connection) {
-        thisAuthor = connection.data.userInfo.userId;
-      }
+    var connection = getConnection(pad.getId(), PADPAGE_ROOMTYPE, optSocketId);
+    if (connection) {
+      thisAuthor = connection.data.userInfo.userId;
     }
   }
   if (optAuthor) {
@@ -167,20 +164,23 @@ function applyUserChanges(pad, baseRev, changeset, optSocketId, optAuthor) {
   padevents.onEditPad(pad, thisAuthor);
 }
 
-function updateClient(pad, connectionId) {
-  var conn = getConnection(connectionId);
-  if (! conn) {
-    return;
-  }
+function updateClient(pad, conn) {
+  // var conn = getConnection(pad.getId(), PADPAGE_ROOMTYPE, connectionId);
+  // log.info("updating client on "+pad.getId()+" : "+(conn?conn.toSource():conn));
+  // if (! conn) {
+  //   return;
+  // }
   var lastRev = conn.data.lastRev;
   var userId = conn.data.userInfo.userId;
   var socketId = conn.socketId;
+  log.info("updating "+userId+" from "+lastRev+" to "+pad.getHeadRevisionNumber());
   while (lastRev < pad.getHeadRevisionNumber()) {
     var r = ++lastRev;
     var author = pad.getRevisionAuthor(r);
     var revisionSockets = _getPadRevisionSockets(pad);
     if (revisionSockets[r] === socketId) {
-      sendMessage(connectionId, {type:"ACCEPT_COMMIT", newRev:r});
+      log.info("sending ACCEPT_COMMIT");
+      sendMessage(conn.socketId, {type:"ACCEPT_COMMIT", newRev:r});
     }
     else {
       var forWire = Changeset.prepareForWire(pad.getRevisionChangeset(r), pad.pool());
@@ -188,16 +188,18 @@ function updateClient(pad, connectionId) {
                  changeset: forWire.translated,
                  apool: forWire.pool,
                  author: author};
-      sendMessage(connectionId, msg);
+      log.info("sending NEW_CHANGES");
+      sendMessage(conn.socketId, msg);
     }
   }
   conn.data.lastRev = pad.getHeadRevisionNumber();
-  updateRoomConnectionData(connectionId, conn.data);
+  updateConnectionData(pad.getId(), PADPAGE_ROOMTYPE, conn.socketId, conn.data);
 }
 
 function updatePadClients(pad) {
+  log.info("updating pad clients!");
   _getPadConnections(pad).forEach(function(connection) {
-    updateClient(pad, connection.id);
+    updateClient(pad, connection);
   });
 
   readonly_server.updatePadClients(pad);
@@ -510,12 +512,12 @@ function _filterUserInfos(userInfos) {
 
 function _sendUserInfoMessage(connectionId, type, userInfos) {
   sendMessage(connectionId, {type: type,
-			     userInfos: _filterUserInfos(userInfos) });
+                             userInfos: _filterUserInfos(userInfos) });
 }
 
 function _sendUserInfoMessageToPad(padId, type, userInfos) {
   sendRoomMessage(padId, PADPAGE_ROOMTYPE,
-		  {type: type, userInfos: _filterUserInfos(userInfos) });
+                  {type: type, userInfos: _filterUserInfos(userInfos) });
 }
 
 function getRoomCallbacks(padId) {
@@ -525,16 +527,16 @@ function getRoomCallbacks(padId) {
       // notify users of each other
       var userInfos = [];
       eachProperty(connections, function(socketId, conn) {
-	userInfos.push(conn.data.userInfo);
+        userInfos.push(conn.data.userInfo);
       });
       _sendUserInfoMessageToPad(padId,
-				"USER_NEWINFO",
-				userInfos);
+                                "USER_NEWINFO",
+                                userInfos);
     };
   callbacks.extroduceUsers =
     function (leavingConnection) {
       _sendUserInfoMessageToPad(padId, "USER_LEAVE",
-				[leavingConnection.data.userInfo]);
+                                [leavingConnection.data.userInfo]);
     };
   callbacks.onAddConnection =
     function (data) {
@@ -570,7 +572,7 @@ function getRoomCallbacks(padId) {
       var socketId = newConnection.socketId;
 
       newConnection.data.lastRev = lastRev;
-      updateConnectionData(socketId, newConnection.data);
+      updateConnectionData(padId, PADPAGE_ROOMTYPE, socketId, newConnection.data);
 
       if (padutils.isProPadId(padId)) {
         pro_padmeta.accessProPad(padId, function(propad) {
@@ -645,7 +647,7 @@ function _handleCometMessage(padId, connection, msg) {
   if (! (socketUserId && _verifyUserId(socketUserId))) {
     // user has signed out or cleared cookies, no longer auth'ed
     bootConnection(padId, PADPAGE_ROOMTYPE,
-		   connection.socketId, "unauth");
+                   connection.socketId, "unauth");
   }
 
   if (msg.type == "USER_CHANGES") {
@@ -687,9 +689,9 @@ function _handleCometMessage(padId, connection, msg) {
         // here it wasn't
       }
       else {
-	sendRoomMessage(padId, PADPAGE_ROOMTYPE,
-			{type: "CLIENT_MESSAGE", payload: payload,
-			 originator: msg.originator});
+        sendRoomMessage(padId, PADPAGE_ROOMTYPE,
+                        {type: "CLIENT_MESSAGE", payload: payload,
+                         originator: msg.originator});
         padevents.onClientMessage(pad, connection.data.userInfo,
                                   payload);
       }

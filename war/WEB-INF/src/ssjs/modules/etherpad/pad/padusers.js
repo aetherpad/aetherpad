@@ -18,6 +18,7 @@ import("etherpad.pro.domains");
 import("etherpad.pro.pro_accounts");
 import("etherpad.pro.pro_accounts.getSessionProAccount");
 import("etherpad.pro.pro_utils");
+import("etherpad.log");
 import("etherpad.sessions");
 import("fastJSON");
 import("gae.dsobj");
@@ -266,6 +267,7 @@ function _randomString(len) {
 
 
 function cachedSqlTable(cacheName, tableName, keyColumns, processFetched) {
+  var id = Math.random()*1e9;
   // Keeps a cache of dsobj rows for the case where
   // you want to select one row at a time by a single column
   // at a time, taken from some set of key columns.

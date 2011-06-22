@@ -278,7 +278,8 @@ function _checkIfDeleted(pad) {
 function render_pad(localPadId) {
   var proTitle = null, documentBarTitle, initialPassword = null;
   var isPro = isProDomainRequest();
-  var userId = padusers.getUserId();
+  
+  var userId;
 
   var opts = {};
   var globalPadId;
@@ -288,6 +289,7 @@ function render_pad(localPadId) {
   }
 
   padutils.accessPadLocal(localPadId, function(pad) {
+    userId = padusers.getUserId();
     globalPadId = pad.getId();
     request.cache.globalPadId = globalPadId;
     _createIfNecessary(localPadId, pad);

@@ -475,9 +475,22 @@ function accessPadGlobal(padId, padFunc, rwMode) {
  * a transaction for a padId, and return the result.
  * Do not attempt to lock more than one pad at a time.
  */
+var _currentPadLock = null;
 function doWithPadLock(padId, func) {
-  return dsobj.inKeyTransaction(
-    dsobj.getRootKey("PAD_ROOT", padId), func);
+  if (_currentPadLock === null) {
+    try {
+      _currentPadLock = padId;
+      return dsobj.inKeyTransaction(
+        dsobj.getRootKey("PAD_ROOT", padId), func);          
+    } finally {
+      _currentPadLock = null;
+    }
+  } else if (_currentPadLock == padId) {
+    func();
+  } else {
+    log.warn("BADNESS: tried to lock more than one pad at once --"+
+             " holding: "+_currentPadLock+"; wanted: "+padId);
+  }
   // var lockName = "document/"+padId;
   // return sync.doWithStringLock(lockName, func);
 }

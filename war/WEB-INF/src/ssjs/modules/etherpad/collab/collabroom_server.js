@@ -20,8 +20,7 @@ import("cache_utils.syncedWithCache");
 import("etherpad.collab.collab_server");
 import("etherpad.collab.readonly_server");
 import("etherpad.log");
-jimport("java.util.concurrent.ConcurrentSkipListMap");
-jimport("java.util.concurrent.CopyOnWriteArraySet");
+import("etherpad.pad.model");
 import("gae.datastore");
 import("gae.dsobj");
 import("gae.channel");
@@ -33,30 +32,53 @@ function _doWarn(str) {
   log.warn(appjet.executionId+": "+str);
 }
 
-function _memcache() {
-  // increment "version number" of namespace
-  // to essentially clear all connections
-  // when uploading a new app version
-  return memcache.ns("collabroom_server-1");
+// function _memcache() {
+//   // increment "version number" of namespace
+//   // to essentially clear all connections
+//   // when uploading a new app version
+//   return memcache.ns("collabroom_server-1");
+// }
+
+var _TABLE = "connections";
+
+// the request cache object for this module.
+function _rc() {
+  if (! appjet.requestCache.collabroom_server_connections) {
+    appjet.requestCache.collabroom_server_connections = {};
+  }
+  return appjet.requestCache.collabroom_server_connections;
 }
 
 // helper functions that treat the memcache key
 // as a JavaScript value, by making it a value
 // in a JSON-stringified object
 function _getObj(key) {
-  var value = _memcache().get(key);
-  if (value === null) {
+  if (! _rc()['$$'+key]) {
+    _rc()['$$'+key] = dsobj.selectSingle(_TABLE, { id: key });
+  }
+  dataobj = _rc()['$$'+key];
+    
+  if (dataobj === null) {
     return null;
   }
   else {
-    return fastJSON.parse(value).x;
+    return fastJSON.parse(dataobj.json).x;
   }
 }
-function _performAtomicObj(key, func, initialValue) {
-  return fastJSON.parse(
-    _memcache().performAtomic(key, function(json) {
-      return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
-    }, fastJSON.stringify({x:initialValue}))).x;
+// function _performAtomicObj(key, func, initialValue) {
+//   return fastJSON.parse(
+//     _memcache().performAtomic(key, function(json) {
+//       return fastJSON.stringify({x: func(fastJSON.parse(json).x)});
+//     }, fastJSON.stringify({x:initialValue}))).x;
+// }
+function _updateConnectionsObject(padId, roomType, conns) {
+  var key = padId+","+roomType;
+  var obj = {
+    id: key,
+    json: fastJSON.stringify({x: conns})
+  };
+  _rc()['$$'+key] = obj;
+  dsobj.insert(_TABLE, obj);
 }
 
 function getConnections(padId, roomType) {
@@ -66,12 +88,10 @@ function getConnections(padId, roomType) {
 function modifyConnections(padId, roomType, func) {
   // func can either mutate the connections in-place
   // or return a new map
-  return _performAtomicObj(
-    padId+","+roomType,
-    function(conns) {
-      return func(conns) || conns;
-    },
-    {});
+  conns = getConnections(padId, roomType);
+  conns = func(conns) || conns;
+  _updateConnectionsObject(padId, roomType, conns);
+  return conns;
 }
 
 function getConnection(padId, roomType, socketId) {
@@ -102,7 +122,7 @@ function _addConnection(padId, roomType,
   var connections = modifyConnections(padId, roomType, function(conns) {
     eachProperty(conns, function(socketId, conn) {
       if (conn.data.userInfo.userId == joiningUser) {
-	socketsToBoot.push(socketId);
+        socketsToBoot.push(socketId);
       }
     });
     socketsToBoot.forEach(function(socketId) {
@@ -116,6 +136,7 @@ function _addConnection(padId, roomType,
     _bootSocket(socketId, "userdup");
   });
 
+  log.info("_addConnection");
   var callbacks = _getCallbacksForRoom(padId, roomType);
   callbacks.introduceUsers(connections);
   callbacks.onAddConnection(data);
@@ -211,7 +232,7 @@ function _sendMessageToSocket(socketId, msg, andDisconnect) {
 function _bootSocket(socketId, reason) {
   _sendMessageToSocket(socketId,
                        {type: "DISCONNECT_REASON", reason: reason},
- 		       true);
+                        true);
 }
 
 // function bootConnection(connectionId, reason) {
@@ -305,9 +326,9 @@ function _removeUserSocket(padId, roomType, socketId) {
 function getRoomConnections(padId, roomType) {
   var conns = [];
   eachProperty(getConnections(padId, roomType),
-	       function(socketId, conn) {
-		 conns.push(conn);
-	       });
+               function(socketId, conn) {
+                 conns.push(conn);
+               });
   return conns;
 }
 
@@ -363,29 +384,31 @@ function handleComet(cometOp, cometId, wrappedMsg) {
   var padId = requireTruthy(wrappedMsg.padId, 4);
   var roomType = requireTruthy(wrappedMsg.roomType, 11);
 
-  if (cometEvent == "disconnect") {
-    _removeUserSocket(padId, roomType, socketId);
-  }
-  else if (cometEvent == "message") {
-    if (msg.type == "CLIENT_READY") {
-      var clientReadyData = requireTruthy(msg.data, 12);
-
-      var callbacks = _getCallbacksForRoom(padId, roomType);
-
-      var userInfo =
-        requireTruthy(callbacks.handleConnect(clientReadyData), 13);
-
-      var newConnection = _addConnection(padId, roomType,
-                                         socketId, {userInfo: userInfo});
-
-      callbacks.clientReady(newConnection, clientReadyData);
+  model.doWithPadLock(padId, function() {
+    if (cometEvent == "disconnect") {
+      _removeUserSocket(padId, roomType, socketId);
     }
-    else {
-      var connection = getConnection(padId, roomType, socketId);
-      if (connection) {
-	var callbacks = _getCallbacksForRoom(padId, roomType);
-	callbacks.handleMessage(connection, msg);
+    else if (cometEvent == "message") {
+      if (msg.type == "CLIENT_READY") {
+        var clientReadyData = requireTruthy(msg.data, 12);
+
+        var callbacks = _getCallbacksForRoom(padId, roomType);
+
+        var userInfo =
+          requireTruthy(callbacks.handleConnect(clientReadyData), 13);
+
+        var newConnection = _addConnection(padId, roomType,
+                                           socketId, {userInfo: userInfo});
+
+        callbacks.clientReady(newConnection, clientReadyData);
+      }
+      else {
+        var connection = getConnection(padId, roomType, socketId);
+        if (connection) {
+          var callbacks = _getCallbacksForRoom(padId, roomType);
+          callbacks.handleMessage(connection, msg);
+        }
       }
     }
-  }
+  });
 }
